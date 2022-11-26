@@ -3,12 +3,13 @@ import math
 from neat.util import NodeType, ActivationType
         
 class Node:
-    def __init__(self, gid, depth, node_type, activation_type):
+    def __init__(self, gid, depth, node_type, activation_type=ActivationType.SIGMOID):
         # GID is global invocation number
         self.gid = gid
         # self.units = []
         # List of incoming Links
         self.incoming_links = []
+        
         self.active_sum = 0 # Current sum of all output actvations
         # self.active_count = 0 # M
         self._activation = None # Activation that corresponds to the output of a node

@@ -10,3 +10,6 @@ class Link:
         self.enabled = True
         self.in_node = in_node
         self.out_node = out_node
+
+        #self.in_node.add_outgoing_link(self)
+        #self.out_node.add_link(self)
