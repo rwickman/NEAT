@@ -6,6 +6,9 @@ class Trait:
     """Represents a weight and a bias for a connection."""
     def __init__(self, config):
         self.config = config
+        self.init_trait()
+        
+    def init_trait(self):
         self._init_weight()
         self._init_bias()
     
@@ -34,4 +37,13 @@ class Trait:
             self.config.bias_min,
             self.config.bias_max)
         
+    def mutate(self):
+        self.weight = self.clamp(
+            self.weight + random.gauss(0.0, self.config.mutate_weight_power),
+            self.config.weight_max,
+            self.config.weight_min)
         
+        self.bias = self.clamp(
+            self.bias + random.gauss(0.0, self.config.mutate_weight_power),
+            self.config.bias_max,
+            self.config.bias_min)

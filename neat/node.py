@@ -16,6 +16,7 @@ class Node:
         self._depth = depth # Depth of this node in the network
         self.node_type = node_type # Type of node
         self.activation_type = activation_type
+        self._active_count = 0
 
     
     @property
@@ -29,7 +30,7 @@ class Node:
     
     @property
     def activation(self):
-        # This should only be called after setup_active_out()
+        # This should only be called after setup_activation() or setting called
         assert self._activation is not None # sanity-check
         
         return self._activation
@@ -41,12 +42,16 @@ class Node:
     
     def add_link(self, link):
         """Add link incoming into this node."""
+        assert self.node_type != NodeType.SENSOR
         self.incoming_links.append(link)
 
     def setup_activation(self):
         # Verify we are not trying to get output of sensor
         assert self.node_type != NodeType.SENSOR
 
+        assert self._active_count == 0
+        self._active_count += 1
+        
         for link in self.incoming_links:
             # Only run through enabled links 
             if link.enabled:
@@ -63,3 +68,4 @@ class Node:
         """Reset the node. Should be called after network has been fully processed."""
         self.active_sum = 0
         self.activation = None
+        self._active_count = 0

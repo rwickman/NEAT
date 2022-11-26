@@ -68,31 +68,25 @@ class Network:
 
         return new_node
 
-        # def inc_node_depth(node, prev_node_depth):
-        #     if node.depth < prev_node_depth + 1:
-        #         self.move_node(node, prev_node_depth + 1)
-        #     else:
-        #         # Can stop early because this node already has been moved to correct position
-        #         return
-
-        #     # Recursively move all successor nodes 
-        #     for link in node.outgoing_links:
-        #         inc_node_depth(node, node.depth)
-
-
-
-        # if out_node.node_type == NodeType.OUT:
-        #     # Sanity-check, must be at the last depth
-        #     assert node.depth == len(self.depth_to_node) - 1
-
-        #     if added_node.depth == out_node.depth:
-        #         # Move all the output nodes down 1
-        #         self.insert_dim(out_node.depth)
-
+    def move_node(self, node, depth, old_depth):
+        found = False
+        for i, cur_node in enumerate(self.depth_to_node[old_depth]):
+            if cur_node.gid == node.gid:
+                self.depth_to_node[old_depth].pop(i)
+                found = True
+                break
+        
+        assert found
+       
+        self.depth_to_node[depth].append(node)
+       
+        node.depth = depth 
 
     def add_link(self, link):
         self.links.append(link)
-        
+        self.inc_link_count(link)
+
+    def inc_link_count(self, link):
         # Add to link counts 
         gid_tuple = (link.in_node.gid, link.out_node.gid)
         if gid_tuple in self.link_dict:
@@ -101,8 +95,19 @@ class Network:
             self.link_dict[gid_tuple] = 1
 
     def get_link_count(self, in_node: Node, out_node: Node):
-        return self.link_dict[(in_node.gid, out_node.gid)]        
-    
+        if (in_node.gid, out_node.gid) in self.link_dict:
+            return self.link_dict[(in_node.gid, out_node.gid)]        
+        else:
+            return 0
+
+    # def fix_depth(self):
+    #     """Fix the depth of all the nodes."""
+    #     out_nodes = [node for node in self.end_nodes if node.node_type == NodeType.OUT]
+    #     gid_to_depth = {}
+    #     def traverse(cur_node, depth):
+    #         for cur_node.incoming_links
+
+
     def activate(self, x):
         """Run x through network."""
 
@@ -117,6 +122,8 @@ class Network:
             for node in self.depth_to_node[i]:
                 # Run input from each node to produce activation
                 node.setup_activation()
+                # print(f"DEPTH {i} ID {node.gid} NODE DEPTH {node.depth}")
+                assert node.depth == i
 
                 # Since last value, get final output
                 if i == len(self.depth_to_node) - 1:
