@@ -75,8 +75,8 @@ class TestNetwork(unittest.TestCase):
         link_hidden_out.trait.weight = 1.0 # Set weight to 1
 
         # Add links to nodes
-        hidden_node.add_link(link_in_hidden)
-        net.end_nodes[-1].add_link(link_hidden_out)
+        # hidden_node.add_link(link_in_hidden)
+        # net.end_nodes[-1].add_link(link_hidden_out)
 
         net.add_link(link_in_hidden)
         net.add_link(link_hidden_out)

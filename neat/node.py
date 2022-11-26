@@ -1,7 +1,7 @@
 import math
 
 from neat.util import NodeType, ActivationType
-        
+
 class Node:
     def __init__(self, gid, depth, node_type, activation_type=ActivationType.SIGMOID):
         # GID is global invocation number
@@ -9,7 +9,7 @@ class Node:
         # self.units = []
         # List of incoming Links
         self.incoming_links = []
-        
+        self.outgoing_links = [] # List of outgoing links
         self.active_sum = 0 # Current sum of all output actvations
         # self.active_count = 0 # M
         self._activation = None # Activation that corresponds to the output of a node
@@ -44,6 +44,11 @@ class Node:
         """Add link incoming into this node."""
         assert self.node_type != NodeType.SENSOR
         self.incoming_links.append(link)
+    
+    def add_outgoing_link(self, link):
+        """Add links outgoing from this node."""
+        assert self.node_type != NodeType.OUT
+        self.outgoing_links.append(link)
 
     def setup_activation(self):
         # Verify we are not trying to get output of sensor
@@ -69,3 +74,9 @@ class Node:
         self.active_sum = 0
         self.activation = None
         self._active_count = 0
+
+
+class OutNode(Node):
+    def __init__(self, gid, depth, node_type, activation_type=ActivationType.SIGMOID, out_pos=0):
+        super().__init__(gid, depth, node_type, activation_type)
+        self.out_pos = out_pos

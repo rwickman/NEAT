@@ -38,12 +38,12 @@ class Trait:
             self.config.bias_max)
         
     def mutate(self):
-        self.weight = self.clamp(
+        self.weight = clamp(
             self.weight + random.gauss(0.0, self.config.mutate_weight_power),
             self.config.weight_max,
             self.config.weight_min)
         
-        self.bias = self.clamp(
+        self.bias = clamp(
             self.bias + random.gauss(0.0, self.config.mutate_weight_power),
             self.config.bias_max,
             self.config.bias_min)

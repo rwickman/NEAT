@@ -1,5 +1,5 @@
 from neat.network import Network
-from neat.node import Node
+from neat.node import Node, OutNode
 from neat.link import Link
 from neat.trait import Trait
 from neat.util import NodeType, ActivationType
@@ -17,9 +17,14 @@ class FooConfig:
         self.bias_max = 100.0
         self.bias_min = -100.0
 
+        self.mutate_link_weight_rate = 0.8
+        self.mutate_link_weight_rand_rate = 0.1
+        self.mutate_weight_power = 0.4
+
 
 def setup_basic_network(config, out_activation_type=ActivationType.SIGMOID):
-    net = Network()
+    OUT_SIZE = 3
+    net = Network(OUT_SIZE)
 
     """Create two sensor nodes"""
     sensor_node_1 = Node(0, 0, NodeType.SENSOR, ActivationType.IDENTITY)
@@ -30,9 +35,9 @@ def setup_basic_network(config, out_activation_type=ActivationType.SIGMOID):
     net.add_node(sensor_node_2, 0)
 
     """Create three output nodes."""
-    out_node_1 = Node(2, 1, NodeType.OUT, out_activation_type)
-    out_node_2 = Node(3, 1, NodeType.OUT, out_activation_type)
-    out_node_3 = Node(4, 1, NodeType.OUT, out_activation_type)
+    out_node_1 = OutNode(2, 1, NodeType.OUT, out_activation_type, out_pos=0)
+    out_node_2 = OutNode(3, 1, NodeType.OUT, out_activation_type, out_pos=1)
+    out_node_3 = OutNode(4, 1, NodeType.OUT, out_activation_type, out_pos=2)
 
     # Add to network
     net.add_node(out_node_1, 1)
@@ -49,14 +54,14 @@ def setup_basic_network(config, out_activation_type=ActivationType.SIGMOID):
     link_2_3 = Link(config, (1, 4), sensor_node_2, out_node_3)
 
     # Add links to nodes
-    out_node_1.add_link(link_1_1)
-    out_node_1.add_link(link_2_1)
+    # out_node_1.add_link(link_1_1)
+    # out_node_1.add_link(link_2_1)
     
-    out_node_2.add_link(link_1_2)
-    out_node_2.add_link(link_2_2)
+    # out_node_2.add_link(link_1_2)
+    # out_node_2.add_link(link_2_2)
     
-    out_node_3.add_link(link_1_3)
-    out_node_3.add_link(link_2_3)
+    # out_node_3.add_link(link_1_3)
+    # out_node_3.add_link(link_2_3)
 
 
     # Add links to network

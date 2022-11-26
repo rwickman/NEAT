@@ -30,7 +30,7 @@ class Mutator:
             self.net.get_link_count(link_rand.in_node, link_rand.out_node))
         
         # Create new node and optionally adjust depths of out_node
-        new_node = self.net.insert_node(link_rand.in_node, link_rand.out_node, node_gid)
+        new_node = self.net.insert_node(link_rand, node_gid)
 
         # Create the links
         link_in_hidden = Link(
@@ -44,10 +44,6 @@ class Mutator:
             (node_gid, link_rand.out_node.gid),
             new_node,
             link_rand.out_node)
-        
-        # Add the links to the nodes
-        new_node.add_link(link_in_hidden)
-        link_rand.out_node.add_link(link_hidden_out)
 
         # Add the links to the network
         self.net.add_link(link_in_hidden)
@@ -65,11 +61,11 @@ class Mutator:
         return new_node
 
 
-    def mutate_links(self):
+    def mutate_link_weights(self):
         """Randomly mutate the weights of the network."""
         for link in self.net.links:
             if random.uniform(0, 1) <= self.config.mutate_link_weight_rate:
-                if random.uniform(0, 1) <= self.mutate_link_weight_rand_rate:
+                if random.uniform(0, 1) <= self.config.mutate_link_weight_rand_rate:
                     # Random init to new value
                     link.trait.init_trait()
                 else:
@@ -139,36 +135,14 @@ class Mutator:
             if out_node.depth > in_node.depth:
                 # Add link to network and outgoing node
                 self.net.add_link(created_link)
-                out_node.add_link(created_link)
             else:
                 # This part requires shifting depth of output node
-                self.net.insert_dim(out_node.depth) # Shift all nodes up
+                #self.net.insert_dim(out_node.depth) # Shift all nodes up
                 #in_node.depth = in_node.depth - 1 # Move it back down
                 assert out_node.depth == in_node.depth
-                self.net.move_node(in_node, out_node.depth - 1, in_node.depth)
+                self.net.move_node(out_node, out_node.depth, out_node.depth + 1)
 
                 self.net.add_link(created_link)
-                out_node.add_link(created_link)
                 print(f"ADDED LINK {in_node.gid} --> {out_node.gid}")
 
             return created_link 
-
-
-
-                
-
-            
-              
-
-
-
-                
-
-        
-
-
-
-
-
-
-

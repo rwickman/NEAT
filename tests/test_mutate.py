@@ -20,7 +20,7 @@ class TestNetwork(unittest.TestCase):
         mutator.mutate_add_node()
         self.assertEqual(len(net.hidden_nodes), 1)
         self.assertEqual(len(net.depth_to_node), 3)
-        self.assertEqual(len(net.depth_to_node[2]), 3)
+        self.assertEqual(len(net.depth_to_node[2]), 1)
         prev_gid = 5
         for i in range(100):
             new_node = mutator.mutate_add_node()
@@ -31,7 +31,6 @@ class TestNetwork(unittest.TestCase):
         self.assertEqual(106, sum([len(net.depth_to_node[depth]) for depth in range(len(net.depth_to_node))]))
 
         self.assertEqual(len(net.hidden_nodes), 101)
-        self.assertEqual(len(net.depth_to_node[-1]), 3)
         net.reset()
         print(net.activate([1,1]))
         # print(net.link_dict)
@@ -49,6 +48,14 @@ class TestNetwork(unittest.TestCase):
             # mutator.mutate_add_link()
             net.reset()
             print(net.activate([1,1]))
+    
+    def test_mutate_link_weights(self):
+        config = FooConfig()
+        net = setup_basic_network(config)
+        inv_counter = InvocationCounter()
+        inv_counter.gid_counter = 5
+        mutator = Mutator(config, net, inv_counter)
+        mutator.mutate_link_weights()
 
 if __name__ == '__main__':
     unittest.main()
