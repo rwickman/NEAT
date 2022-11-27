@@ -29,4 +29,14 @@ if __name__ == "__main__":
     parser.add_argument("--mutate_weight_power", type=float, default=0.4, 
         help="Power of mutating a weight.")
     
+
+    parser.add_argument("--speciate_excess_factor", type=float, default=3.0, 
+        help="Gene excess factor used for comparing two genotypes.")
+    parser.add_argument("--speciate_disjoint_factor", type=float, default=3.0, 
+        help="Gene disjoint factor used for comparing two genotypes.")
+    parser.add_argument("--speciate_weight_factor", type=float, default=3.0, 
+        help="Gene trait weight factor used for comparing two genotypes.")
+    parser.add_argument("--speciate_compatibility_threshold", type=float, default=3.0, 
+        help="Gene trait weight factor used for comparing two genotypes.")
+
     args = parser.parse_args()
