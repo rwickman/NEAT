@@ -31,8 +31,8 @@ def setup_basic_network(config, out_activation_type=ActivationType.SIGMOID):
     sensor_node_2 = Node(1, 0, NodeType.SENSOR, ActivationType.IDENTITY)
     
     # Add to network
-    net.add_node(sensor_node_1, 0)
-    net.add_node(sensor_node_2, 0)
+    net.add_node(sensor_node_1)
+    net.add_node(sensor_node_2)
 
     """Create three output nodes."""
     out_node_1 = OutNode(2, 1, NodeType.OUT, out_activation_type, out_pos=0)
@@ -40,18 +40,18 @@ def setup_basic_network(config, out_activation_type=ActivationType.SIGMOID):
     out_node_3 = OutNode(4, 1, NodeType.OUT, out_activation_type, out_pos=2)
 
     # Add to network
-    net.add_node(out_node_1, 1)
-    net.add_node(out_node_2, 1)
-    net.add_node(out_node_3, 1)
+    net.add_node(out_node_1)
+    net.add_node(out_node_2)
+    net.add_node(out_node_3)
 
     # Add links between sensor and out nodes
-    link_1_1 = Link(config, (0, 2), sensor_node_1, out_node_1)
-    link_1_2 = Link(config, (0, 3), sensor_node_1, out_node_2)
-    link_1_3 = Link(config, (0, 4), sensor_node_1, out_node_3)
+    link_1_1 = Link(config, sensor_node_1, out_node_1)
+    link_1_2 = Link(config, sensor_node_1, out_node_2)
+    link_1_3 = Link(config, sensor_node_1, out_node_3)
 
-    link_2_1 = Link(config, (1, 2), sensor_node_2, out_node_1)
-    link_2_2 = Link(config, (1, 3), sensor_node_2, out_node_2)
-    link_2_3 = Link(config, (1, 4), sensor_node_2, out_node_3)
+    link_2_1 = Link(config, sensor_node_2, out_node_1)
+    link_2_2 = Link(config, sensor_node_2, out_node_2)
+    link_2_3 = Link(config, sensor_node_2, out_node_3)
 
     # Add links to nodes
     # out_node_1.add_link(link_1_1)

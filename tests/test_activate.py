@@ -23,7 +23,7 @@ class TestNetwork(unittest.TestCase):
         # Create hidden node
         hidden_node = Node(10, 1, NodeType.HIDDEN, ActivationType.SIGMOID)
         net.insert_dim(1) # Shift all nodes over one
-        net.add_node(hidden_node, 1)
+        net.add_node(hidden_node)
 
         self.assertEqual(len(net.end_nodes), 5)
         self.assertEqual(len(net.hidden_nodes), 1)
@@ -34,8 +34,8 @@ class TestNetwork(unittest.TestCase):
 
         # Disable link between last OUT node and first SENSOR node
         net.end_nodes[-1].incoming_links[0].enabled = False
-        link_in_hidden = Link(config, (0, 10), net.end_nodes[0], hidden_node)
-        link_hidden_out = Link(config, (10, 4), hidden_node, net.end_nodes[-1])
+        link_in_hidden = Link(config, net.end_nodes[0], hidden_node)
+        link_hidden_out = Link(config, hidden_node, net.end_nodes[-1])
         
         net.add_link(link_in_hidden)
         net.add_link(link_hidden_out)
@@ -55,7 +55,7 @@ class TestNetwork(unittest.TestCase):
         # Create hidden node
         hidden_node = Node(10, 1, NodeType.HIDDEN, ActivationType.IDENTITY)
         net.insert_dim(1) # Shift all nodes over one
-        net.add_node(hidden_node, 1)
+        net.add_node(hidden_node)
 
         self.assertEqual(len(net.end_nodes), 5)
         self.assertEqual(len(net.hidden_nodes), 1)
@@ -68,8 +68,8 @@ class TestNetwork(unittest.TestCase):
         net.end_nodes[-1].incoming_links[0].enabled = False
         self.assertEqual(net.end_nodes[-1].incoming_links[0].in_node.gid, net.end_nodes[0].gid)
 
-        link_in_hidden = Link(config, (0, 10), net.end_nodes[0], hidden_node)
-        link_hidden_out = Link(config, (10, 4), hidden_node, net.end_nodes[-1])
+        link_in_hidden = Link(config, net.end_nodes[0], hidden_node)
+        link_hidden_out = Link(config, hidden_node, net.end_nodes[-1])
 
         link_in_hidden.trait.weight = 1.0 # Set weight to 1
         link_hidden_out.trait.weight = 1.0 # Set weight to 1

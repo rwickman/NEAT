@@ -10,6 +10,7 @@ class Node:
         # List of incoming Links
         self.incoming_links = []
         self.outgoing_links = [] # List of outgoing links
+
         self.active_sum = 0 # Current sum of all output actvations
         # self.active_count = 0 # M
         self._activation = None # Activation that corresponds to the output of a node
@@ -17,6 +18,9 @@ class Node:
         self.node_type = node_type # Type of node
         self.activation_type = activation_type
         self._active_count = 0
+
+    def copy(self):
+        return Node(self.gid, self.depth, self.node_type, self.activation_type)
 
     
     @property
@@ -80,3 +84,7 @@ class OutNode(Node):
     def __init__(self, gid, depth, node_type, activation_type=ActivationType.SIGMOID, out_pos=0):
         super().__init__(gid, depth, node_type, activation_type)
         self.out_pos = out_pos
+    
+    def copy(self):
+        print("COPYING OUT NODE")
+        return OutNode(self.gid, self.depth, self.node_type, self.activation_type, self.out_pos)

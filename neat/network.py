@@ -6,16 +6,20 @@ class Network:
     def __init__(self, out_size=3):
         self.hidden_nodes: list[Node] = [] # List of hidden Nodes in the network
         self.end_nodes: list[Node] = [] # List of input/output Nodes in the network
+        self.nodes: dict = {}
+
         self.depth_to_node: list = [[] for i in range(2)] # Dictionary from depth to node
-        self.links: list[Link] = [] # List of Links in the network
+        self.links: dict = {} # List of Links in the network
         self.link_dict: dict[tuple, int] = {} #map from link to number of links that have the same count
         self.out_size = out_size
 
-    def add_node(self, node, depth):
+    def add_node(self, node):
+        depth = node.depth
         # if depth not in self.depth_to_node:
         #     self.depth_to_node[depth] = []
-
         self.depth_to_node[depth].append(node)
+        assert node.gid not in self.nodes
+        self.nodes[node.gid] = node
 
         # Check if you need to add an end node or hidden node
         if depth == 0 or depth == len(self.depth_to_node) - 1:
@@ -49,7 +53,7 @@ class Network:
         assert new_node.depth != link.in_node.depth
 
         # Add the node to the network
-        self.add_node(new_node, new_node.depth)
+        self.add_node(new_node)
 
         return new_node
 
@@ -71,7 +75,10 @@ class Network:
         node.depth = new_depth 
 
     def add_link(self, link):
-        self.links.append(link)
+        assert (link.in_node.gid, link.out_node.gid) not in self.links
+        self.links[(link.in_node.gid, link.out_node.gid)] = link
+        
+
         self.inc_link_count(link)
         
         # Add links to nodes
@@ -97,14 +104,20 @@ class Network:
         cur_depth = node.depth + 1
         visit_links = [ link ]
         outgoing_links = []
+        visited = set()
         while True:
             for cur_link in visit_links:
                 cur_node = cur_link.out_node
-                if cur_depth > cur_node.depth:        
+                # if cur_node.gid in visited:
+                #     continue 
+                visited.add(cur_node.gid)
+
+                if cur_depth > cur_node.depth:
                     self.move_node(cur_node, cur_depth)
 
                     cur_node.depth = cur_depth
                     outgoing_links += cur_node.outgoing_links
+                    
             cur_depth += 1
             
             if outgoing_links:
@@ -143,3 +156,35 @@ class Network:
         for i in range(len(self.depth_to_node)):
             for node in self.depth_to_node[i]:
                 node.reset()
+
+    def copy(self):
+        copy_net = Network(self.out_size)
+        # Copy the 
+        copy_net.depth_to_node = [[] for _ in range(len(self.depth_to_node))]
+        for gid_tuple, link in self.links.items():    
+            # Get the input node
+            if link.in_node.gid not in copy_net.nodes:
+                # Create it if it doesn't exist
+                in_node = link.in_node.copy()
+                copy_net.add_node(in_node)
+            else:
+                in_node = copy_net.nodes[link.in_node.gid]
+            # Get the output node
+            if link.out_node.gid not in copy_net.nodes:
+                # Create it if it doesn't exist
+                out_node = link.out_node.copy()
+                copy_net.add_node(out_node)
+            else:
+                out_node = copy_net.nodes[link.out_node.gid]
+                
+            assert gid_tuple == (in_node.gid, out_node.gid)
+            # Copy the link
+            copy_link = link.copy(in_node, out_node)
+            
+            # Add the copied link to the copied network
+            copy_net.add_link(copy_link)
+            
+            
+        return copy_net
+            
+
