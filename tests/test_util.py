@@ -21,6 +21,11 @@ class FooConfig:
         self.mutate_link_weight_rand_rate = 0.1
         self.mutate_weight_power = 0.4
 
+        self.speciate_disjoint_factor = 1.0
+        self.speciate_weight_factor = 1.0
+        self.speciate_compatibility_threshold = 3.0
+
+
 
 def setup_basic_network(config, out_activation_type=ActivationType.SIGMOID):
     OUT_SIZE = 3

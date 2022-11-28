@@ -79,7 +79,7 @@ class Mutator:
         # 4. Can't create cycle 
 
         cur_attempt = 0
-        max_attempts = 20
+        max_attempts = 30
         found = False
         while cur_attempt < max_attempts:
             cur_attempt += 1

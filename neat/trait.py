@@ -47,3 +47,6 @@ class Trait:
             self.bias + random.gauss(0.0, self.config.mutate_weight_power),
             self.config.bias_max,
             self.config.bias_min)
+    
+    def distance(self, other_trait):
+        return abs(self.weight - other_trait.weight) + abs(self.bias - other_trait.bias)
