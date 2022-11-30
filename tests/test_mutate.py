@@ -16,14 +16,14 @@ class TestNetwork(unittest.TestCase):
         inv_counter = InvocationCounter()
         inv_counter.gid_counter = 5
 
-        mutator = Mutator(config, net, inv_counter)
-        mutator.mutate_add_node()
+        mutator = Mutator(config, inv_counter)
+        mutator.mutate_add_node(net)
         self.assertEqual(len(net.hidden_nodes), 1)
         self.assertEqual(len(net.depth_to_node), 3)
         self.assertEqual(len(net.depth_to_node[2]), 1)
         prev_gid = 5
         for i in range(100):
-            new_node = mutator.mutate_add_node()
+            new_node = mutator.mutate_add_node(net)
             self.assertEqual(new_node.gid, prev_gid + 1)
             prev_gid += 1
         
@@ -48,12 +48,12 @@ class TestNetwork(unittest.TestCase):
             net = setup_basic_network(config)
             inv_counter = InvocationCounter()
             inv_counter.gid_counter = 5
-            mutator = Mutator(config, net, inv_counter)
+            mutator = Mutator(config, inv_counter)
             for i in range(20):
-                new_node = mutator.mutate_add_node()
+                new_node = mutator.mutate_add_node(net)
                 for d in range(len(net.depth_to_node)):
                     self.assertGreater(len(net.depth_to_node[d]), 0)
-                mutator.mutate_add_link()
+                mutator.mutate_add_link(net)
 
             
             # Verify all the depths are correct
@@ -72,23 +72,42 @@ class TestNetwork(unittest.TestCase):
         net = setup_basic_network(config)
         inv_counter = InvocationCounter()
         inv_counter.gid_counter = 5
-        mutator = Mutator(config, net, inv_counter)
-        mutator.mutate_link_weights()
+        mutator = Mutator(config, inv_counter)
+        mutator.mutate_link_weights(net)
     
     def test_detect_cycle(self):
         config = FooConfig()
         net = setup_basic_network(config)
         inv_counter = InvocationCounter()
         inv_counter.gid_counter = 5
-        mutator = Mutator(config, net, inv_counter)
+        mutator = Mutator(config, inv_counter)
 
-        new_node = mutator.mutate_add_node()
+        new_node = mutator.mutate_add_node(net)
 
         self.assertTrue(detect_cycle(new_node, new_node.incoming_links[0].in_node))
         self.assertTrue(detect_cycle(new_node.outgoing_links[0].out_node, new_node.incoming_links[0].in_node))
         for i in range(2):
             for j in range(3):
                 self.assertFalse(detect_cycle(net.nodes[i], net.end_nodes[j+2]))
+
+
+    def test_mutate_two_nets(self):
+        config = FooConfig()
+        net_1 = setup_basic_network(config)
+        net_2 = setup_basic_network(config)
+
+        inv_counter = InvocationCounter()
+        inv_counter.gid_counter = 5
+        mutator = Mutator(config, inv_counter)
+
+        for i in range(100):
+            mutator.mutate_add_node(net_1)
+            mutator.mutate_add_link(net_1)
+            mutator.mutate_add_node(net_2)
+            mutator.mutate_add_link(net_2)
+            net_1 = net_1.copy()
+            net_2 = net_2.copy()
+
 
     
 

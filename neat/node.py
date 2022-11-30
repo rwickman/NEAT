@@ -86,5 +86,4 @@ class OutNode(Node):
         self.out_pos = out_pos
     
     def copy(self):
-        print("COPYING OUT NODE")
         return OutNode(self.gid, self.depth, self.node_type, self.activation_type, self.out_pos)

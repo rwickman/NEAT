@@ -5,8 +5,8 @@ from neat.node import Node, OutNode
 from neat.util import NodeType
 
 class Reproduction:
-    def __init__(self):
-        pass
+    def __init__(self, config):
+        self.config = config
 
     def reproduce(self, net_1, net_2, fitness_1, fitness_2):
         """Reproduce using two networks."""
@@ -30,6 +30,9 @@ class Reproduction:
         
         # Randomly select genes for shared genes
         for gid_tuple, link in net_1.links.items():
+            if random.random() <= self.config.mutate_enable_gene:
+                # Enable the gene if it was disabled    
+                child_net.links[gid_tuple].enabled = True
             if gid_tuple in net_2.links:
                 # Choose a random gene to copy trait
                 if random.random() >= 0.5:
@@ -38,6 +41,7 @@ class Reproduction:
                 else:
                     link_2 = net_2.links[gid_tuple]
                     child_net.links[gid_tuple].copy_trait(link_2)
+
                 
         
 

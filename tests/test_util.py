@@ -22,8 +22,11 @@ class FooConfig:
         self.mutate_weight_power = 0.4
 
         self.speciate_disjoint_factor = 1.0
-        self.speciate_weight_factor = 1.0
-        self.speciate_compatibility_threshold = 3.0
+        self.speciate_weight_factor = 0.4
+        self.speciate_compat_threshold = 15.0
+
+        self.init_pop_size = 150
+        
 
 
 

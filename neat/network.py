@@ -18,6 +18,7 @@ class Network:
         # if depth not in self.depth_to_node:
         #     self.depth_to_node[depth] = []
         self.depth_to_node[depth].append(node)
+
         assert node.gid not in self.nodes
         self.nodes[node.gid] = node
 
@@ -183,8 +184,10 @@ class Network:
             
             # Add the copied link to the copied network
             copy_net.add_link(copy_link)
+
+            copy_net.link_dict[gid_tuple] = self.link_dict[gid_tuple]
             
-            
+
         return copy_net
             
 

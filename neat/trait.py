@@ -40,13 +40,14 @@ class Trait:
     def mutate(self):
         self.weight = clamp(
             self.weight + random.gauss(0.0, self.config.mutate_weight_power),
-            self.config.weight_max,
-            self.config.weight_min)
+            self.config.weight_min,
+            self.config.weight_max)
         
         self.bias = clamp(
             self.bias + random.gauss(0.0, self.config.mutate_weight_power),
-            self.config.bias_max,
-            self.config.bias_min)
+            self.config.bias_min,
+            self.config.bias_max)
+    
     
     def distance(self, other_trait):
         return abs(self.weight - other_trait.weight) + abs(self.bias - other_trait.bias)

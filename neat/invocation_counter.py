@@ -13,9 +13,7 @@ class InvocationCounter:
             count: the number of times this type of node has been added between these two nodes
         """
         gid_tuple = (old_in_gid, old_out_gid, count)
-
         if gid_tuple in self.link_dict:
-            assert False
             # A node has already been added between these links, so increase counter
             return self.link_dict[gid_tuple]
         else:

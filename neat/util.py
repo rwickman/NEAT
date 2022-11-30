@@ -8,6 +8,7 @@ class NodeType(Enum):
 class ActivationType(Enum):
     SIGMOID = 1
     IDENTITY = 2
+    SOFTMAX = 3
 
 def clamp(val, min_val, max_val):
     return min(max(val, min_val), max_val)

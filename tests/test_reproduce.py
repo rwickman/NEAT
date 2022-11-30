@@ -16,12 +16,12 @@ class TestReproduce(unittest.TestCase):
         net_1 = setup_basic_network(config)
         inv_counter = InvocationCounter()
         inv_counter.gid_counter = 5
-        mutator = Mutator(config, net_1, inv_counter)
-        mutator.mutate_add_node()
-        mutator.mutate_add_node()
-        mutator.mutate_add_link()
+        mutator = Mutator(config, inv_counter)
+        mutator.mutate_add_node(net_1)
+        mutator.mutate_add_node(net_1)
+        mutator.mutate_add_link(net_1)
         
-        breeder = Reproduction()
+        breeder = Reproduction(config)
         child_net = breeder.reproduce(net_1, net_1, 10.0, 0.0)
         self.assertEqual(len(child_net.links), len(net_1.links))
 
