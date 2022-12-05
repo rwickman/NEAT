@@ -45,9 +45,11 @@ if __name__ == "__main__":
         help="Power of mutating a weight.")
     parser.add_argument("--mutate_add_node_rate", type=float, default=0.15, 
         help="Likelihood of randomly adding a new node.")
-    parser.add_argument("--mutate_add_link_rate", type=float, default=0.15, 
+    parser.add_argument("--mutate_add_link_rate", type=float, default=0.30, 
         help="Likelihood of randomly adding a new link.")
     parser.add_argument("--mutate_enable_gene", type=float, default=0.25, 
+        help="Likelihood of randomly enabling a gene.")
+    parser.add_argument("--mutate_no_crossover", type=float, default=0.1, 
         help="Likelihood of randomly enabling a gene.")
 
 
@@ -58,6 +60,8 @@ if __name__ == "__main__":
         help="Gene trait weight factor used for comparing two genotypes.")
     parser.add_argument("--speciate_compat_threshold", type=float, default=3.0, 
         help="Gene trait weight factor used for comparing two genotypes.")
+    parser.add_argument("--respeciate_size", type=int, default=2, 
+        help="Size for respeciation.")
 
     parser.add_argument("--init_pop_size", type=int, default=150, 
         help="Initial population size.")

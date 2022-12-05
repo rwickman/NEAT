@@ -17,7 +17,6 @@ class Population:
         self.cur_id = 0
         self.stagnation = Stagnation(self.config)
 
-
     def setup(self, net):
         self.base_org = Organism(self.config, net)
         self.inv_counter.gid_counter = len(net.nodes)
@@ -37,11 +36,9 @@ class Population:
         
         return orgs
 
-
     def add_speices(self, species):
         self.species_list.append(species)
         self.stagnation.add_species(species)
-
 
     def speciate(self):
         """Put the organisms into different species."""
@@ -66,6 +63,27 @@ class Population:
                 new_species = Species(self.config, len(self.species_list))
                 new_species.add(org)
                 self.add_speices(new_species)
+    
+    def respeciate(self):
+        retained_orgs = set()
+        for species in self.species_list:
+            species.orgs = species.orgs[:self.config.respeciate_size]
+            for org in species.orgs:
+                retained_orgs.add(org.id)
+
+        for org in self.orgs:
+            if org not in retained_orgs:
+                random.shuffle(self.species_list)
+                found = False
+                for cur_species in self.species_list:
+                    if self.speciate_fn(org.net, cur_species.first().net) < self.config.speciate_compat_threshold:
+                        cur_species.add(org)
+                        found = True
+                        break
+                if not found:
+                    cur_species = random.choice(self.species_list)
+                    cur_species.add(org)
+
 
     def speciate_fn(self, net_1, net_2):
         """Compare two networks to determine if they should form a new species."""
@@ -102,7 +120,7 @@ class Population:
             cur_species.age += 1 # Increase the age
             num_spawn = math.ceil((cur_species.adj_fitness / total_avg_fitness) * self.config.init_pop_size *  (1 - self.config.survival_rate))
             cur_species.orgs.sort(key=lambda x: x.avg_fitness, reverse=True) # Sort so best organisms are first
-            print("len(cur_species.orgs)", len(cur_species.orgs))
+            #print("len(cur_species.orgs)", len(cur_species.orgs))
             if self.stagnation.update(cur_species.species_id, cur_species.avg_fitness):
                 # The species has stagnated so remove them
                 num_spawn = max(num_spawn, 2) - self.config.elites
@@ -119,7 +137,10 @@ class Population:
                 #print("num_spawn", num_spawn, "num_live", num_live)
                 for _ in range(num_spawn):
                     parent_1 = random.choice(cur_species.orgs)
-                    parent_2 = random.choice(cur_species.orgs)
+                    if random.random() <= self.config.mutate_no_crossover:
+                        parent_2 = parent_1
+                    else:
+                        parent_2 = random.choice(cur_species.orgs)
 
                     child_net = self.breeder.reproduce(parent_1.net, parent_2.net, parent_1.fitness, parent_2.fitness)
 
@@ -132,7 +153,7 @@ class Population:
 
             self.orgs.extend(cur_species.orgs)     
             
- 
+        self.respeciate()
         print(len(self.orgs))
           
     def mutate_child(self, child_net):
