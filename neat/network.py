@@ -76,8 +76,8 @@ class Network:
         node.depth = new_depth 
 
     def add_link(self, link):
-        assert (link.in_node.gid, link.out_node.gid) not in self.links
-        self.links[(link.in_node.gid, link.out_node.gid)] = link
+        assert (link.in_node.gid, link.out_node.gid, link.is_recur) not in self.links
+        self.links[(link.in_node.gid, link.out_node.gid, link.is_recur)] = link
         
 
         self.inc_link_count(link)
@@ -89,15 +89,15 @@ class Network:
 
     def inc_link_count(self, link):
         # Add to link counts 
-        gid_tuple = (link.in_node.gid, link.out_node.gid)
+        gid_tuple = (link.in_node.gid, link.out_node.gid, link.is_recur)
         if gid_tuple in self.link_dict:
             self.link_dict[gid_tuple] += 1
         else:
             self.link_dict[gid_tuple] = 1
 
-    def get_link_count(self, in_node: Node, out_node: Node):
-        if (in_node.gid, out_node.gid) in self.link_dict:
-            return self.link_dict[(in_node.gid, out_node.gid)]        
+    def get_link_count(self, in_node: Node, out_node: Node, is_recur: bool = False):
+        if (in_node.gid, out_node.gid, is_recur) in self.link_dict:
+            return self.link_dict[(in_node.gid, out_node.gid, is_recur)]        
         else:
             return 0
 
@@ -108,16 +108,17 @@ class Network:
         visited = set()
         while True:
             for cur_link in visit_links:
-                cur_node = cur_link.out_node
-                # if cur_node.gid in visited:
-                #     continue 
-                visited.add(cur_node.gid)
+                if not cur_link.is_recur:
+                    cur_node = cur_link.out_node
+                    # if cur_node.gid in visited:
+                    #     continue 
+                    visited.add(cur_node.gid)
 
-                if cur_depth > cur_node.depth:
-                    self.move_node(cur_node, cur_depth)
+                    if cur_depth > cur_node.depth:
+                        self.move_node(cur_node, cur_depth)
 
-                    cur_node.depth = cur_depth
-                    outgoing_links += cur_node.outgoing_links
+                        cur_node.depth = cur_depth
+                        outgoing_links += cur_node.outgoing_links
                     
             cur_depth += 1
             
@@ -178,8 +179,8 @@ class Network:
             else:
                 out_node = copy_net.nodes[link.out_node.gid]
                 
-            assert gid_tuple == (in_node.gid, out_node.gid)
-            # Copy the link
+            assert gid_tuple == (in_node.gid, out_node.gid, link.is_recur)
+            # Copy the link traits with a different in_node and out_node
             copy_link = link.copy(in_node, out_node)
             
             # Add the copied link to the copied network

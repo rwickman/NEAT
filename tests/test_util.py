@@ -20,10 +20,14 @@ class FooConfig:
         self.mutate_link_weight_rate = 0.8
         self.mutate_link_weight_rand_rate = 0.1
         self.mutate_weight_power = 0.4
+        self.mutate_enable_gene = 0.25
+        self.mutate_no_crossover = 0.1
+        self.mutate_add_recur_rate = 0.05
 
         self.speciate_disjoint_factor = 1.0
         self.speciate_weight_factor = 0.4
         self.speciate_compat_threshold = 15.0
+
 
         self.init_pop_size = 150
         

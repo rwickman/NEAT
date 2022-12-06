@@ -51,8 +51,9 @@ class LundarLander:
         
         print("MAX FITNESS", max_fitness)
         if max_fitness > self.goal:
-            self.run(best_org, True)
             print("SHOWING BEST")
+            print("SCORE", self.run(best_org, True))
+            
         
         
 

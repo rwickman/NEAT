@@ -16,8 +16,9 @@ class Mutator:
     def mutate_add_node(self, net):
         """Add a new node between a randomly selected link."""
 
-        # Select a random link
-        link_rand = random.choice(list(net.links.values()))
+        # Select a random non-recurrent link
+        non_recur_links = [link for link in list(net.links.values()) if not link.is_recur]
+        link_rand = random.choice(non_recur_links)
 
         # Disable the selected link
         link_rand.enable = False
@@ -80,64 +81,100 @@ class Mutator:
         cur_attempt = 0
         max_attempts = 30
         found = False
+
+        if random.random() <= self.config.mutate_add_recur_rate:
+            # Add a recurrent link
+            created_link = self._create_recurrent_link(net)
+            return created_link
+        else:
+
+            while cur_attempt < max_attempts:
+                cur_attempt += 1
+                
+                rand_depth = random.randint(0, len(net.depth_to_node) - 1)
+                if rand_depth == 0:
+                    # Prevent connection between input nodes
+                    rand_out_depth = random.randint(1, len(net.depth_to_node)-1)
+                    rand_in_depth = rand_depth
+                else:
+                    rand_depth_2 = random.randint(0, len(net.depth_to_node)-1)
+                    rand_out_depth = rand_depth
+                    rand_in_depth = rand_depth_2
+
+                # Choose random input and output nodes
+                if len(net.depth_to_node[rand_in_depth]) == 0:
+                    print("rand_in_depth", rand_in_depth)
+                if len(net.depth_to_node[rand_out_depth]) == 0:
+                    print("rand_out_depth", rand_out_depth)
+                in_node = random.choice(net.depth_to_node[rand_in_depth])
+                out_node = random.choice(net.depth_to_node[rand_out_depth])
+                
+
+                # Only add a link that doesn't exist, isn't recurrent, doesn't create a cycle, and in_node is not OUT node
+                if ( net.get_link_count(in_node, out_node) > 0 or in_node.gid == out_node.gid or 
+                    in_node.node_type == NodeType.OUT or detect_cycle(in_node, out_node)):
+                    # Sanity-check, verify this method works correctly
+                    # assert net.get_link_count(out_node, in_node) == 0
+                    continue
+                else:
+                    found = True
+                    break
+            
+            # # Sanity-check to verify got correct ordering
+            # assert out_node.depth >= in_node.depth
+            assert out_node.node_type != NodeType.SENSOR
+            # Check if a valid connection was found
+        
+
+            if found:
+                assert in_node.depth == rand_in_depth and out_node.depth == out_node.depth
+                # Create the new link
+                created_link = Link(
+                    self.config,
+                    in_node,
+                    out_node)
+
+                # Simplest case, just add the connection as is
+                if out_node.depth > in_node.depth:
+                    assert in_node.node_type != NodeType.OUT
+                    # Add link to network and outgoing node
+                    net.add_link(created_link)
+                elif out_node.depth >= in_node.depth:
+                    # Move the node to the -1 correct position
+                    net.move_node(out_node, in_node.depth)
+                    # This function will move the out_node and every outgoing node
+                    net.update_depth(out_node, created_link)
+                    net.add_link(created_link)
+
+
+
+                return created_link 
+    
+    def _create_recurrent_link(self, net):
+        
+        cur_attempt = 0
+        max_attempts = 30
+        found = False
+        net_nodes = list(net.nodes.values())
         while cur_attempt < max_attempts:
-            cur_attempt += 1
+            in_node = random.choice(net_nodes)
+            out_node = random.choice(net_nodes)
             
-            rand_depth = random.randint(0, len(net.depth_to_node) - 1)
-            if rand_depth == 0:
-                # Prevent connection between input nodes
-                rand_out_depth = random.randint(1, len(net.depth_to_node)-1)
-                rand_in_depth = rand_depth
-            else:
-                rand_depth_2 = random.randint(0, len(net.depth_to_node)-1)
-                rand_out_depth = rand_depth
-                rand_in_depth = rand_depth_2
-
-            # Choose random input and output nodes
-            if len(net.depth_to_node[rand_in_depth]) == 0:
-                print("rand_in_depth", rand_in_depth)
-            if len(net.depth_to_node[rand_out_depth]) == 0:
-                print("rand_out_depth", rand_out_depth)
-            in_node = random.choice(net.depth_to_node[rand_in_depth])
-            out_node = random.choice(net.depth_to_node[rand_out_depth])
-            
-
-            # Only add a link that doesn't exist, isn't recurrent, doesn't create a cycle, and in_node is not OUT node
-            if ( net.get_link_count(in_node, out_node) > 0 or in_node.gid == out_node.gid or 
-                in_node.node_type == NodeType.OUT or detect_cycle(in_node, out_node)):
-                # Sanity-check, verify this method works correctly
-                # assert net.get_link_count(out_node, in_node) == 0
+            if out_node.node_type == NodeType.SENSOR or net.get_link_count(in_node, out_node, is_recur=True) > 0:
+                cur_attempt += 1
                 continue
-            else:
-                found = True
-                break
-        
-        # # Sanity-check to verify got correct ordering
-        # assert out_node.depth >= in_node.depth
-        assert out_node.node_type != NodeType.SENSOR
-        # Check if a valid connection was found
-        
 
+            found = True
+            break
+        
         if found:
-            assert in_node.depth == rand_in_depth and out_node.depth == out_node.depth
             # Create the new link
             created_link = Link(
                 self.config,
                 in_node,
-                out_node)
-
-            # Simplest case, just add the connection as is
-            if out_node.depth > in_node.depth:
-                assert in_node.node_type != NodeType.OUT
-                # Add link to network and outgoing node
-                net.add_link(created_link)
-            elif out_node.depth >= in_node.depth:
-                # Move the node to the -1 correct position
-                net.move_node(out_node, in_node.depth)
-                # This function will move the out_node and every outgoing node
-                net.update_depth(out_node, created_link)
-                net.add_link(created_link)
-
-
-
-            return created_link 
+                out_node,
+                is_recur=True)
+            
+            net.add_link(created_link)
+        
+            return created_link

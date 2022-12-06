@@ -107,12 +107,13 @@ class Population:
     
     def evolve(self):
         total_avg_fitness = 0
-        min_fitnesss = min([cur_species.avg_fitness for cur_species in self.species_list])
+        min_fitness = min([cur_species.avg_fitness for cur_species in self.species_list])
         max_fitness = max([cur_species.avg_fitness for cur_species in self.species_list])
-        
-            
+        if min_fitness == max_fitness:
+            max_fitness += 0.01
+
         for cur_species in self.species_list:
-            cur_species.adj_fitness = (cur_species.avg_fitness - min_fitnesss) / (max_fitness - min_fitnesss)
+            cur_species.adj_fitness = (cur_species.avg_fitness - min_fitness) / (max_fitness - min_fitness)
             total_avg_fitness += cur_species.adj_fitness
 
         self.orgs = []

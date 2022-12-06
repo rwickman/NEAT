@@ -50,8 +50,9 @@ if __name__ == "__main__":
     parser.add_argument("--mutate_enable_gene", type=float, default=0.25, 
         help="Likelihood of randomly enabling a gene.")
     parser.add_argument("--mutate_no_crossover", type=float, default=0.1, 
-        help="Likelihood of randomly enabling a gene.")
-
+        help="Likelihood of copying a parent without crossover.")
+    parser.add_argument("--mutate_add_recur_rate", type=float, default=0.05, 
+        help="Likelihood of adding a recurrent link.")
 
 
     parser.add_argument("--speciate_disjoint_factor", type=float, default=1.0, 
