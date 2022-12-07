@@ -1,17 +1,22 @@
 import gym
 from neat.population import Population
 from neat.nets.basic_nets import build_basic_net
+from neat.helpers.saving import save_population, load_population
 
 class CartPole:
-    def __init__(self, config, goal=2000):
+    def __init__(self, config, goal=3000):
         self.goal = goal
         self.config = config
         self.env = gym.make('CartPole-v1')
         # Create the population
-        self.population = Population(self.config)
-        # Create the intitial population
-        self.population.setup(
-            build_basic_net(self.config, 4, 1))
+        if self.config.load:
+            # Load population
+            self.population = load_population(config)
+        else:
+            self.population = Population(self.config)
+            # Create the intitial population
+            self.population.setup(
+                build_basic_net(self.config, 4, 1))
 
     def run(self, org, render=False):
         if render:
@@ -44,9 +49,12 @@ class CartPole:
             if org.fitness > max_fitness:
                 max_fitness = org.fitness
                 best_org = org
-        
 
+        save_population(self.population, self.config.save_file)
         print("MAX FITNESS", max_fitness)
         if max_fitness > self.goal:
             self.run(best_org, True)
         self.population.evolve()
+
+
+        

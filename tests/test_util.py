@@ -19,17 +19,26 @@ class FooConfig:
 
         self.mutate_link_weight_rate = 0.8
         self.mutate_link_weight_rand_rate = 0.1
+        self.mutate_add_node_rate = 0.15
+        self.mutate_add_link_rate = 0.30
         self.mutate_weight_power = 0.4
         self.mutate_enable_gene = 0.25
         self.mutate_no_crossover = 0.1
         self.mutate_add_recur_rate = 0.05
+        self.reproduce_avg_trait_rate = 0.5
 
         self.speciate_disjoint_factor = 1.0
         self.speciate_weight_factor = 0.4
         self.speciate_compat_threshold = 15.0
+        self.max_species = 10
+        self.respeciate_size = 1
 
+        self.save_file = "test_pop.json"
 
         self.init_pop_size = 150
+        self.survival_rate = 0.2
+        self.max_stagnation = 20
+        self.elites = 2
         
 
 

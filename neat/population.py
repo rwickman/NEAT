@@ -1,4 +1,4 @@
-import math, random
+import math, os, random
 
 from neat.invocation_counter import InvocationCounter
 from neat.mutator import Mutator
@@ -14,8 +14,10 @@ class Population:
         self.inv_counter = InvocationCounter()
         self.mutator = Mutator(self.config, self.inv_counter)
         self.breeder = Reproduction(self.config)
-        self.cur_id = 0
+        self.cur_id = 1
+        self.species_list = [] # List of different species
         self.stagnation = Stagnation(self.config)
+        self.orgs = []
 
     def setup(self, net):
         self.base_org = Organism(self.config, net)
@@ -36,53 +38,66 @@ class Population:
         
         return orgs
 
-    def add_speices(self, species):
+    def add_species(self, species):
         self.species_list.append(species)
         self.stagnation.add_species(species)
 
     def speciate(self):
         """Put the organisms into different species."""
-        self.species_list = []
 
-        # Create the first species
-        cur_species = Species(self.config)
-        cur_species.add(self.orgs[0])
-        self.add_speices(cur_species)
+
+        # # Create the first species
+        # cur_species.add(self.orgs[0])
         
         # Put the rest of the organisms in a species
-        for org in self.orgs:
-            random.shuffle(self.species_list)
-            found = False
-            for cur_species in self.species_list:
-                if self.speciate_fn(org.net, cur_species.first().net) < self.config.speciate_compat_threshold:
-                    cur_species.add(org)
-                    found = True
-                    break
+        cur_org_idx = 0
+        for i in range(self.config.max_species):
+            num_org = max(self.config.init_pop_size//self.config.max_species, 1)
+            cur_species = Species(self.config, len(self.species_list))
+            self.add_species(cur_species)
+            for _ in range(num_org):
+                cur_species.add(self.orgs[cur_org_idx])
+                cur_org_idx += 1
+                
 
-            if not found:
-                new_species = Species(self.config, len(self.species_list))
-                new_species.add(org)
-                self.add_speices(new_species)
+
+        # for org in self.orgs:
+        #     random.shuffle(self.species_list)
+        #     found = False
+        #     for cur_species in self.species_list:
+        #         if self.speciate_fn(org.net, cur_species.first().net) < self.config.speciate_compat_threshold:
+        #             cur_species.add(org)
+        #             found = True
+        #             break
+
+        #     if not found:
+        #         new_species = Species(self.config, len(self.species_list))
+        #         new_species.add(org)
+        #         self.add_species(new_species)
     
     def respeciate(self):
+        """Respeciate the population into different species that better match."""
         retained_orgs = set()
+        # Keep few best orgs in each species 
         for species in self.species_list:
             species.orgs = species.orgs[:self.config.respeciate_size]
             for org in species.orgs:
                 retained_orgs.add(org.id)
 
+        # Find best matchgin species for each organism 
         for org in self.orgs:
-            if org not in retained_orgs:
+            if org.id not in retained_orgs:
                 random.shuffle(self.species_list)
-                found = False
-                for cur_species in self.species_list:
-                    if self.speciate_fn(org.net, cur_species.first().net) < self.config.speciate_compat_threshold:
-                        cur_species.add(org)
-                        found = True
-                        break
-                if not found:
-                    cur_species = random.choice(self.species_list)
-                    cur_species.add(org)
+                min_species_val = None
+                best_species = None
+                for i, cur_species in enumerate(self.species_list):
+                    speciate_val = self.speciate_fn(org.net, cur_species.first().net)
+
+                    if best_species == None or speciate_val < min_species_val:
+                        min_species_val = speciate_val
+                        best_species = cur_species
+                
+                best_species.add(org)
 
 
     def speciate_fn(self, net_1, net_2):
@@ -109,19 +124,21 @@ class Population:
         total_avg_fitness = 0
         min_fitness = min([cur_species.avg_fitness for cur_species in self.species_list])
         max_fitness = max([cur_species.avg_fitness for cur_species in self.species_list])
+        
         if min_fitness == max_fitness:
-            max_fitness += 0.01
+            min_fitness -= 0.01
+
 
         for cur_species in self.species_list:
             cur_species.adj_fitness = (cur_species.avg_fitness - min_fitness) / (max_fitness - min_fitness)
             total_avg_fitness += cur_species.adj_fitness
-
+        #print("EVOLVE LEN OF ORG SET: ", len(set([org.id for org in self.orgs])), "len(self.orgs)", len(self.orgs))
         self.orgs = []
         for cur_species in self.species_list:
             cur_species.age += 1 # Increase the age
             num_spawn = math.ceil((cur_species.adj_fitness / total_avg_fitness) * self.config.init_pop_size *  (1 - self.config.survival_rate))
             cur_species.orgs.sort(key=lambda x: x.avg_fitness, reverse=True) # Sort so best organisms are first
-            #print("len(cur_species.orgs)", len(cur_species.orgs))
+            
             if self.stagnation.update(cur_species.species_id, cur_species.avg_fitness):
                 # The species has stagnated so remove them
                 num_spawn = max(num_spawn, 2) - self.config.elites
@@ -148,14 +165,16 @@ class Population:
                     self.mutate_child(child_net)
                     
                     # Mutate
-                    cur_species.orgs.append(Organism(self.config, child_net, gen=max(parent_1.generation, parent_2.generation) + 1, id=self.cur_id))
+                    cur_species.add(
+                        Organism(self.config, child_net, gen=max(parent_1.generation, parent_2.generation) + 1, id=self.cur_id))
 
                     self.cur_id += 1
 
             self.orgs.extend(cur_species.orgs)     
             
         self.respeciate()
-        print(len(self.orgs))
+        assert len(set([org.id for org in self.orgs])) == len(self.orgs)
+        print("len(self.orgs)", len(self.orgs))
           
     def mutate_child(self, child_net):
         if random.random() <= self.config.mutate_add_node_rate:
@@ -164,8 +183,8 @@ class Population:
         if random.random() <= self.config.mutate_add_link_rate:
             self.mutator.mutate_add_link(child_net)
         
-        # if random.random() <= self.config.mutate_link_weight_rate:
-        self.mutator.mutate_link_weights(child_net)
+        if random.random() <= self.config.mutate_link_weight_rate:
+            self.mutator.mutate_link_weights(child_net)
 
 
         

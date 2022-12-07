@@ -21,4 +21,4 @@ class Species:
     
     @property
     def avg_fitness(self):
-        return sum([o.fitness for o in self.orgs]) / len(self.orgs)
+        return sum([o.avg_fitness for o in self.orgs]) / len(self.orgs)

@@ -1,11 +1,11 @@
-from enum import Enum
+from enum import IntEnum
 
-class NodeType(Enum):
+class NodeType(IntEnum):
     SENSOR = 1
     HIDDEN = 2
     OUT = 3
 
-class ActivationType(Enum):
+class ActivationType(IntEnum):
     SIGMOID = 1
     IDENTITY = 2
     SOFTMAX = 3

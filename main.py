@@ -12,6 +12,7 @@ def main(args):
         env = MountainCar(args)
 
     for i in range(100000):
+        print(f"Generation {i}")
         env.eval_population()
 
 
@@ -39,7 +40,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--mutate_link_weight_rate", type=float, default=0.8, 
         help="Probability of mutating all link weights.")
-    parser.add_argument("--mutate_link_weight_rand_rate", type=float, default=0.1, 
+    parser.add_argument("--mutate_link_weight_rand_rate", type=float, default=0.05, 
         help="Likelihood of randomly initializing new link weight.")
     parser.add_argument("--mutate_weight_power", type=float, default=0.4, 
         help="Power of mutating a weight.")
@@ -53,6 +54,8 @@ if __name__ == "__main__":
         help="Likelihood of copying a parent without crossover.")
     parser.add_argument("--mutate_add_recur_rate", type=float, default=0.05, 
         help="Likelihood of adding a recurrent link.")
+    parser.add_argument("--reproduce_avg_trait_rate", type=float, default=0.5, 
+        help="Likelihood of averaging the parents traits.")
 
 
     parser.add_argument("--speciate_disjoint_factor", type=float, default=1.0, 
@@ -61,8 +64,11 @@ if __name__ == "__main__":
         help="Gene trait weight factor used for comparing two genotypes.")
     parser.add_argument("--speciate_compat_threshold", type=float, default=3.0, 
         help="Gene trait weight factor used for comparing two genotypes.")
-    parser.add_argument("--respeciate_size", type=int, default=2, 
+    parser.add_argument("--respeciate_size", type=int, default=1, 
         help="Size for respeciation.")
+    parser.add_argument("--max_species", type=int, default=15, 
+        help="Size for respeciation.")
+    
 
     parser.add_argument("--init_pop_size", type=int, default=150, 
         help="Initial population size.")
@@ -75,6 +81,10 @@ if __name__ == "__main__":
     parser.add_argument("--elites", type=int, default=2,
         help="Number of elites to preserve if a species is terminated.")
 
+    parser.add_argument("--save_file", default="models/population.json",
+        help="Directory to save NEAT models.")
+    parser.add_argument("--load", action="store_true",
+        help="Load existing population from save_file.")
 
     args = parser.parse_args()
     main(args)

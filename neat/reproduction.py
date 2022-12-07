@@ -12,6 +12,7 @@ class Reproduction:
         """Reproduce using two networks."""
 
         #child_net = Network(net_1.out_size)
+        avg_traits = random.random() <= self.config.reproduce_avg_trait_rate
 
         # Copy network from better node
         if fitness_1 > fitness_2:
@@ -34,13 +35,18 @@ class Reproduction:
                 # Enable the gene if it was disabled    
                 child_net.links[gid_tuple].enabled = True
             if gid_tuple in net_2.links:
-                # Choose a random gene to copy trait
-                if random.random() >= 0.5:
-                    # Already copied
-                    pass
-                else:
+                if avg_traits:
+                    # Average the two parent traits
                     link_2 = net_2.links[gid_tuple]
-                    child_net.links[gid_tuple].copy_trait(link_2)
+                    child_net.links[gid_tuple].avg_traits(link, link_2)
+                else:
+                    # Choose a random gene to copy trait
+                    if random.random() >= 0.5:
+                        # Already copied
+                        pass
+                    else:
+                        link_2 = net_2.links[gid_tuple]
+                        child_net.links[gid_tuple].copy_trait(link_2)
 
                 
         

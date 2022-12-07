@@ -190,5 +190,3 @@ class Network:
             
 
         return copy_net
-            
-

@@ -6,7 +6,8 @@ class Link:
     def __init__(self, config, in_node: Node, out_node: Node, is_recur: bool = False):
         # GID is (input node, output node)
         self.config = config
-        self.gid = (in_node.gid, out_node.gid)
+        self.gid = (in_node.gid, out_node.gid, is_recur)
+
         self.trait = Trait(config)
         self.enabled = True
         self.in_node = in_node
@@ -23,3 +24,7 @@ class Link:
     def copy_trait(self, other_link):
         self.trait.weight = other_link.trait.weight
         self.trait.bias = other_link.trait.bias
+    
+    def avg_traits(self, link_1, link_2):
+        self.trait.weight = (link_1.trait.weight + link_2.trait.weight) / 2
+        self.trait.bias = (link_1.trait.bias + link_2.trait.bias) / 2

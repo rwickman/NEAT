@@ -28,7 +28,8 @@ class Mutator:
             link_rand.in_node.gid,
             link_rand.out_node.gid,
             net.get_link_count(link_rand.in_node, link_rand.out_node))
-        
+        #print("node_gid", node_gid, link_rand.in_node.gid, link_rand.out_node.gid, net.get_link_count(link_rand.in_node, link_rand.out_node))
+
         # Create new node and optionally adjust depths of out_node
         new_node = net.insert_node(link_rand, node_gid)
 
@@ -61,14 +62,13 @@ class Mutator:
     def mutate_link_weights(self, net):
         """Randomly mutate the weights of the network."""
         for link in net.links.values():
-            if random.random() <= self.config.mutate_link_weight_rate:
-                if random.random() <= self.config.mutate_link_weight_rand_rate:
-                    # Random init to new value
-                    link.trait.init_trait()
-                else:
-                    # Randomly mutate link trait
-                    link.trait.mutate()
-    
+            if random.random() <= self.config.mutate_link_weight_rand_rate:
+                # Random init to new value
+                link.trait.init_trait()
+            else:
+                # Randomly mutate link trait
+                link.trait.mutate()
+        
     def mutate_add_link(self, net):
         """Randomly add a new link to the network."""
 
@@ -160,7 +160,7 @@ class Mutator:
             in_node = random.choice(net_nodes)
             out_node = random.choice(net_nodes)
             
-            if out_node.node_type == NodeType.SENSOR or net.get_link_count(in_node, out_node, is_recur=True) > 0:
+            if out_node.node_type == NodeType.SENSOR or out_node.node_type == NodeType.OUT or net.get_link_count(in_node, out_node, is_recur=True) > 0:
                 cur_attempt += 1
                 continue
 

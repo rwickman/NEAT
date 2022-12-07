@@ -5,25 +5,25 @@ class Organism:
         self.net = net # The network controlling the behavior of the organism
         self.generation = gen # Tells what generation this organism is from
         self.fitness = 0
-        self.best_fitness = -1000
-        self.fitness_vals = []
+        self.best_fitness = -1000000
         self.id = id
+        self._fitness_avg = 0
+        self._num_updates = 0
 
     def copy(self, id=0):
         copy_net = self.net.copy()
-        return Organism(self.config, copy_net, self.generation, self.id)
+        return Organism(self.config, copy_net, self.generation, id)
 
     def update_fitness(self, fitness):
-        self.fitness_vals.append(fitness)
+        self._num_updates += 1
+        # Calculation the moving average
+        self._fitness_avg += (fitness - self._fitness_avg) / self._num_updates
         self.best_fitness = max(fitness, self.best_fitness)
         self.fitness = fitness
 
     @property
     def avg_fitness(self):
-        if len(self.fitness_vals) == 0:
-            return self.fitness
-
-        return sum(self.fitness_vals) / len(self.fitness_vals) 
+        return self._fitness_avg 
 
     def __call__(self, x):
         y = self.net.activate(x)

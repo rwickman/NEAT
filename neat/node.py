@@ -1,6 +1,6 @@
 import math
 
-from neat.util import NodeType, ActivationType
+from neat.util import NodeType, ActivationType, clamp
 
 class Node:
     def __init__(self, gid, depth, node_type, activation_type=ActivationType.SIGMOID):
@@ -23,7 +23,6 @@ class Node:
     def copy(self):
         return Node(self.gid, self.depth, self.node_type, self.activation_type)
 
-    
     @property
     def depth(self):
         return self._depth
@@ -31,7 +30,6 @@ class Node:
     @depth.setter
     def depth(self, depth):
         self._depth = depth 
-    
     
     @property
     def activation(self):
@@ -79,7 +77,7 @@ class Node:
 
         # Run through activation function
         if self.activation_type == ActivationType.SIGMOID:
-            self.activation = 1 / (1 + math.exp(-self.active_sum))
+            self.activation = 1 / (1 + math.exp(-clamp(self.active_sum, -100, 100)))
         else:
             self.activation = self.active_sum
 
