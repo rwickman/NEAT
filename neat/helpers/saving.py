@@ -112,6 +112,7 @@ def save_population(population: Population, save_file: str):
     # Aggregate everything into this population dictionary
     pop_dict = {
         "orgs": orgs,
+        "generation": population.generation,
         "cur_id": population.cur_id,
         "inv_dict": _create_inv_counter_dict(population.inv_counter),
         "base_org": base_org,
@@ -213,6 +214,7 @@ def load_population(config):
         pop_dict["inv_dict"]["inv_link_list"])
 
     population.cur_id = pop_dict["cur_id"]
+    population.generation = pop_dict["generation"]
 
     # Create the base organism
     population.base_org = _load_organism(config, pop_dict["base_org"])

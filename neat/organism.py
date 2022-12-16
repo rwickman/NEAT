@@ -25,6 +25,9 @@ class Organism:
     def avg_fitness(self):
         return self._fitness_avg 
 
+    def reset(self):
+        self.net.reset()
+
     def __call__(self, x):
         y = self.net.activate(x)
         self.net.reset()

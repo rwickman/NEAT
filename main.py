@@ -2,12 +2,16 @@ import argparse
 from neat.environment.cart_pole import CartPole
 from neat.environment.mountain_car import MountainCar
 from neat.environment.lundar_lander import LundarLander
+from neat.environment.lundar_lander_novelty import LundarLanderNovelty
+
 
 def main(args):
     if args.env == "cartpole":
         env = CartPole(args)
     elif args.env == "lander":
         env = LundarLander(args)
+    elif args.env == "lander_novelty":
+        env = LundarLanderNovelty(args)
     else:
         env = MountainCar(args)
 
@@ -56,6 +60,8 @@ if __name__ == "__main__":
         help="Likelihood of adding a recurrent link.")
     parser.add_argument("--reproduce_avg_trait_rate", type=float, default=0.5, 
         help="Likelihood of averaging the parents traits.")
+    parser.add_argument("--reproduce_interspecies_rate", type=float, default=0.001, 
+        help="Likelihood of reproducing across species.")
 
 
     parser.add_argument("--speciate_disjoint_factor", type=float, default=1.0, 
@@ -64,7 +70,7 @@ if __name__ == "__main__":
         help="Gene trait weight factor used for comparing two genotypes.")
     parser.add_argument("--speciate_compat_threshold", type=float, default=3.0, 
         help="Gene trait weight factor used for comparing two genotypes.")
-    parser.add_argument("--respeciate_size", type=int, default=1, 
+    parser.add_argument("--respeciate_size", type=int, default=2, 
         help="Size for respeciation.")
     parser.add_argument("--max_species", type=int, default=15, 
         help="Size for respeciation.")
@@ -80,6 +86,14 @@ if __name__ == "__main__":
         help="Maximum number of stagnation generations before the species is terminated.")
     parser.add_argument("--elites", type=int, default=2,
         help="Number of elites to preserve if a species is terminated.")
+
+    parser.add_argument("--novelty_threshold", type=float, default=3.0,
+        help="Threshold for avg distance in novelty to be added to novelty queue.")
+    parser.add_argument("--novelty_queue_size", type=int, default=1000,
+        help="Number of novelty final states in the queue.")
+    parser.add_argument("--novelty_neighbors", type=int, default=15,
+        help="Number of novelty neighbors used to compute novelty.")
+
 
     parser.add_argument("--save_file", default="models/population.json",
         help="Directory to save NEAT models.")
