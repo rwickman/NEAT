@@ -21,8 +21,7 @@ class Reproduction:
             child_net = net_2.copy()
             net_1, net_2 = net_2, net_1 # Swap for easier transfering 
         else:
-            # Randomly select a network to copy
-            # TODO: In the future, do fine-tune mutation
+            # Randomly select a network to copy as fitness values are equal
             if random.random() >= 0.5:
                 child_net = net_1.copy()
             else:
@@ -41,7 +40,7 @@ class Reproduction:
                     child_net.links[gid_tuple].avg_traits(link, link_2)
                 else:
                     # Choose a random gene to copy trait
-                    if random.random() >= 0.5:
+                    if random.random() <= 0.5:
                         # Already copied
                         pass
                     else:

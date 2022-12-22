@@ -62,12 +62,13 @@ class Mutator:
     def mutate_link_weights(self, net):
         """Randomly mutate the weights of the network."""
         for link in net.links.values():
-            if random.random() <= self.config.mutate_link_weight_rand_rate:
-                # Random init to new value
-                link.trait.init_trait()
-            else:
-                # Randomly mutate link trait
-                link.trait.mutate()
+            if random.random() <= self.config.mutate_link_weight_rate:
+                if random.random() <= self.config.mutate_link_weight_rand_rate:
+                    # Random init to new value
+                    link.trait.init_trait()
+                else:
+                    # Randomly mutate link trait
+                    link.trait.mutate()
         
     def mutate_add_link(self, net):
         """Randomly add a new link to the network."""

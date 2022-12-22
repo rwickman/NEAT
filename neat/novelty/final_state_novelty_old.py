@@ -7,21 +7,6 @@ class FinalStateNovelty:
         # List of novel final states 
         self.novel_archive = []
 
-    def novelty(self, final_states: list):
-        avg_dists = []
-        for i, final_state in enumerate(final_states):
-            state_dists = []
-            for state in self.novel_archive + final_states[:i] + final_states[i+1:]:
-                state_dists.append(self._dist(final_state, state))
-            
-            state_dists.sort()
-            neighbor_dists = state_dists[:self.config.novelty_neighbors]
-            avg_dist = sum(neighbor_dists) / len(neighbor_dists)
-            self._attempt_add_queue(final_state, avg_dist)
-            avg_dists.append(avg_dist)
-        
-        return avg_dists
-
     def avg_dist(self, final_state):
         if len(self.novel_archive) > 0:
             

@@ -38,7 +38,7 @@ class MountainCar:
         max_fitness = self.stop_point
         best_org = None
         for org in self.population.orgs:
-            org.fitness = self.run(org)
+            org.update_fitness(self.run(org))
             if org.fitness > max_fitness:
                 max_fitness = org.fitness
                 best_org = org

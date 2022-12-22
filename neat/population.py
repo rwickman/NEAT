@@ -18,6 +18,7 @@ class Population:
         self.species_list = [] # List of different species
         self.stagnation = Stagnation(self.config)
         self.orgs = []
+        self.generation = 0
 
     def setup(self, net):
         self.base_org = Organism(self.config, net)
@@ -33,7 +34,11 @@ class Population:
         for i in range(pop_size):
             copy_org = base_org.copy(self.cur_id) # Create a copy
             self.cur_id += 1
+            prev_rand = self.config.mutate_link_weight_rand_rate
+            self.config.mutate_link_weight_rand_rate = 1.0
+
             self.mutator.mutate_link_weights(copy_org.net) # Randomize the link weights
+            self.config.mutate_link_weight_rand_rate = prev_rand
             orgs.append(copy_org) 
         
         return orgs
@@ -99,7 +104,6 @@ class Population:
                 
                 best_species.add(org)
 
-
     def speciate_fn(self, net_1, net_2):
         """Compare two networks to determine if they should form a new species."""
         num_disjoint = 0
@@ -121,10 +125,13 @@ class Population:
         return self.config.speciate_disjoint_factor * num_disjoint + self.config.speciate_weight_factor * (trait_diff/num_shared)
     
     def evolve(self):
+        self.generation += 1
+        print("self.generation", self.generation)
         total_avg_fitness = 0
         min_fitness = min([cur_species.avg_fitness for cur_species in self.species_list])
         max_fitness = max([cur_species.avg_fitness for cur_species in self.species_list])
-        
+        print("max_fitness", max_fitness)
+        print("min_fitness", min_fitness)
         if min_fitness == max_fitness:
             min_fitness -= 0.01
 
@@ -136,8 +143,15 @@ class Population:
         self.orgs = []
         for cur_species in self.species_list:
             cur_species.age += 1 # Increase the age
+            
+            # Calculate how many new organisms to spawn
             num_spawn = math.ceil((cur_species.adj_fitness / total_avg_fitness) * self.config.init_pop_size *  (1 - self.config.survival_rate))
-            cur_species.orgs.sort(key=lambda x: x.avg_fitness, reverse=True) # Sort so best organisms are first
+            
+            # Randomize order so that sorting uniform avg fitness is random
+            random.shuffle(cur_species.orgs)
+            
+            # Sort so best organisms are first
+            cur_species.orgs.sort(key=lambda x: x.avg_fitness, reverse=True) 
             
             if self.stagnation.update(cur_species.species_id, cur_species.avg_fitness):
                 # The species has stagnated so remove them
@@ -149,25 +163,34 @@ class Population:
                 self.stagnation.reset(cur_species)
                 print("RESETING", cur_species.species_id, "num_spawn", num_spawn)
             else:
+                # Calculate how many organsims should remain "alive"
                 num_live = int(math.ceil(max(self.config.survival_rate * len(cur_species.orgs), 2)))
-                cur_species.orgs = cur_species.orgs[:num_live] # Remove all but the top
-
-                #print("num_spawn", num_spawn, "num_live", num_live)
+                
+                # Remove all but the top
+                cur_species.orgs = cur_species.orgs[:num_live]
+                
+                # Spawn the new organisms
                 for _ in range(num_spawn):
                     parent_1 = random.choice(cur_species.orgs)
                     if random.random() <= self.config.mutate_no_crossover:
                         parent_2 = parent_1
                     else:
-                        parent_2 = random.choice(cur_species.orgs)
+                        if random.random() <= self.config.reproduce_interspecies_rate:
+                            # Choose a random organism across all the species
+                            parent_2 = random.choice(random.choice(self.species_list).orgs)
+                        else:
+                            parent_2 = random.choice(cur_species.orgs)
 
-                    child_net = self.breeder.reproduce(parent_1.net, parent_2.net, parent_1.fitness, parent_2.fitness)
+                    child_net = self.breeder.reproduce(parent_1.net, parent_2.net, parent_1.avg_fitness, parent_2.avg_fitness)
 
+                    # Mutate the genotype
                     self.mutate_child(child_net)
                     
-                    # Mutate
+
                     cur_species.add(
                         Organism(self.config, child_net, gen=max(parent_1.generation, parent_2.generation) + 1, id=self.cur_id))
 
+                    # Increment the current organism ID
                     self.cur_id += 1
 
             self.orgs.extend(cur_species.orgs)     
@@ -186,12 +209,10 @@ class Population:
         if random.random() <= self.config.mutate_link_weight_rate:
             self.mutator.mutate_link_weights(child_net)
 
-
-        
-
-
-
-
+    def reset(self):
+        """Reset all the organsisms in the population."""
+        for org in self.orgs:
+            org.reset()
 
 
 
