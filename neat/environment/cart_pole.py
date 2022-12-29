@@ -38,6 +38,8 @@ class CartPole:
             total_reward += reward
             if total_reward > self.goal:
                 done = True
+        
+        org.net.reset()
 
         return total_reward
 

@@ -150,7 +150,7 @@ class Network:
                 if node.node_type == NodeType.OUT:
                     # sanity-check to verify only getting output from output node 
                     outs[node.out_pos] = node.activation
-        
+
         return outs
 
     def reset(self):

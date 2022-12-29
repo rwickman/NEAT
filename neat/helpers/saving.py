@@ -228,16 +228,14 @@ def load_population(config):
 
     # Load the species
     for species_dict in pop_dict["species_list"]:
-        species = Species(config, species_dict["id"])
+        species = population._create_species()
         species.age = species_dict["age"]
 
         # Add the organisms to the species
 
         for org_id in species_dict["org_ids"]:
             species.add(org_index[org_id])
-        
-        population.add_species(species)
-    
+
     return population
 
 

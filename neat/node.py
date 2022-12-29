@@ -77,9 +77,9 @@ class Node:
 
         # Run through activation function
         if self.activation_type == ActivationType.SIGMOID:
-            self.activation = 1 / (1 + math.exp(-clamp(self.active_sum, -100, 100)))
+            self._activation = 1 / (1 + math.exp(-clamp(self.active_sum, -100, 100)))
         else:
-            self.activation = self.active_sum
+            self._activation = self.active_sum
 
 
     def reset(self):

@@ -1,6 +1,7 @@
 
 from neat.trait import Trait
 from neat.node import Node
+import random
 
 class Link:
     def __init__(self, config, in_node: Node, out_node: Node, is_recur: bool = False):
@@ -28,3 +29,10 @@ class Link:
     def avg_traits(self, link_1, link_2):
         self.trait.weight = (link_1.trait.weight + link_2.trait.weight) / 2
         self.trait.bias = (link_1.trait.bias + link_2.trait.bias) / 2
+    
+    def dir_trait(self, link_1, link_2):
+        self.trait.weight = link_1.trait.weight + random.gauss(0.0, self.config.mutate_weight_power) + random.gauss(0.0, self.config.mutate_weight_power) * (link_2.trait.weight - link_1.trait.weight)
+        self.trait.bias = link_1.trait.bias + random.gauss(0.0, self.config.mutate_weight_power) + random.gauss(0.0, self.config.mutate_weight_power) * (link_2.trait.bias - link_1.trait.bias)
+
+
+

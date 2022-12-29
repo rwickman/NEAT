@@ -36,8 +36,6 @@ class LundarLander:
             out = org(state)
             
             action = np.random.choice(len(out), p=softmax(out))
-            if steps > 400 and action == 0:
-                print("NOTHING")
             state, reward, done, truncated, info = self.env.step(action)
             
             total_reward += reward
@@ -46,9 +44,8 @@ class LundarLander:
             steps += 1
             if steps > self.max_steps:
                 done = True
-        
-        org.net.reset()
 
+        org.net.reset()
         return total_reward
     
     def eval_population(self):

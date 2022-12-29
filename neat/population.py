@@ -43,9 +43,14 @@ class Population:
         
         return orgs
 
-    def add_species(self, species):
+    def _create_species(self):
+        """Create a new empty species."""
+        species = Species(self.config, len(self.species_list))
+        
         self.species_list.append(species)
         self.stagnation.add_species(species)
+
+        return species
 
     def speciate(self):
         """Put the organisms into different species."""
@@ -56,30 +61,14 @@ class Population:
         
         # Put the rest of the organisms in a species
         cur_org_idx = 0
-        for i in range(self.config.max_species):
-            num_org = max(self.config.init_pop_size//self.config.max_species, 1)
-            cur_species = Species(self.config, len(self.species_list))
-            self.add_species(cur_species)
+        for i in range(self.config.init_species):
+            num_org = max(self.config.init_pop_size//self.config.init_species, 1)
+            cur_species = self._create_species()
             for _ in range(num_org):
                 cur_species.add(self.orgs[cur_org_idx])
                 cur_org_idx += 1
                 
 
-
-        # for org in self.orgs:
-        #     random.shuffle(self.species_list)
-        #     found = False
-        #     for cur_species in self.species_list:
-        #         if self.speciate_fn(org.net, cur_species.first().net) < self.config.speciate_compat_threshold:
-        #             cur_species.add(org)
-        #             found = True
-        #             break
-
-        #     if not found:
-        #         new_species = Species(self.config, len(self.species_list))
-        #         new_species.add(org)
-        #         self.add_species(new_species)
-    
     def respeciate(self):
         """Respeciate the population into different species that better match."""
         retained_orgs = set()
@@ -96,16 +85,24 @@ class Population:
                 min_species_val = None
                 best_species = None
                 for i, cur_species in enumerate(self.species_list):
-                    speciate_val = self.speciate_fn(org.net, cur_species.first().net)
+                    speciate_val = self.speciate_fn(org, cur_species.first())
 
                     if best_species == None or speciate_val < min_species_val:
                         min_species_val = speciate_val
                         best_species = cur_species
-                
+
+                # if min_species_val >= self.config.speciate_compat_threshold and len(self.species_list) < self.config.max_species:
+                #     new_species = self._create_species()
+                #     new_species.add(org)
+                # else:
+                #     best_species.add(org)
                 best_species.add(org)
 
-    def speciate_fn(self, net_1, net_2):
+
+    def speciate_fn(self, org_1, org_2):
         """Compare two networks to determine if they should form a new species."""
+        net_1 = org_1.net
+        net_2 = org_2.net
         num_disjoint = 0
         num_shared = 0
         trait_diff = 0
@@ -123,7 +120,56 @@ class Population:
         if num_shared == 0:
             num_shared = 1
         return self.config.speciate_disjoint_factor * num_disjoint + self.config.speciate_weight_factor * (trait_diff/num_shared)
-    
+
+    def prune_species(self, cur_species):
+        # Randomize order so that sorting uniform avg fitness is random
+        random.shuffle(cur_species.orgs)
+        
+        # Sort so best organisms are first
+        cur_species.orgs.sort(key=lambda x: x.avg_fitness, reverse=True) 
+        # Calculate how many organsims should remain "alive"
+        num_live = int(math.ceil(max(self.config.survival_rate * len(cur_species.orgs), 2)))
+        
+        # Remove all but the top
+        cur_species.orgs = cur_species.orgs[:num_live]
+
+
+    def breed(self, cur_species):
+        parent_1 = random.choice(cur_species.orgs)
+        if random.random() <= self.config.mutate_no_crossover:
+            parent_2 = parent_1
+        else:
+            if random.random() <= self.config.reproduce_interspecies_rate:
+                # Choose a random organism across all the species
+                parent_2 = random.choice(random.choice(self.species_list).orgs)
+            else:
+                parent_2 = random.choice(cur_species.orgs)
+
+        child_net = self.breeder.reproduce(
+            parent_1.net, parent_2.net, parent_1.avg_fitness, parent_2.avg_fitness)
+
+        # Mutate the genotype
+        self.mutate_child(child_net)
+        
+
+        new_org = Organism(
+            self.config, child_net, gen=max(parent_1.generation, parent_2.generation) + 1, id=self.cur_id)
+
+        # Increment the current organism ID
+        self.cur_id += 1
+
+        return new_org, parent_1, parent_2
+
+    def _reset_species(self, cur_species, num_spawn):
+        # The species has stagnated so remove them
+        num_spawn = max(num_spawn, 2) - self.config.elites
+        
+        cur_species.orgs = cur_species.orgs[:self.config.elites]
+        if num_spawn > 0:
+            cur_species.orgs.extend(self.spawn(self.base_org, num_spawn)) 
+        self.stagnation.reset(cur_species)
+        print("RESETING", cur_species.species_id, "num_spawn", num_spawn)
+
     def evolve(self):
         self.generation += 1
         print("self.generation", self.generation)
@@ -145,53 +191,22 @@ class Population:
             cur_species.age += 1 # Increase the age
             
             # Calculate how many new organisms to spawn
-            num_spawn = math.ceil((cur_species.adj_fitness / total_avg_fitness) * self.config.init_pop_size *  (1 - self.config.survival_rate))
-            
-            # Randomize order so that sorting uniform avg fitness is random
-            random.shuffle(cur_species.orgs)
-            
-            # Sort so best organisms are first
-            cur_species.orgs.sort(key=lambda x: x.avg_fitness, reverse=True) 
-            
+            num_spawn = round((cur_species.adj_fitness / total_avg_fitness) * self.config.init_pop_size *  (1 - self.config.survival_rate))
+
+            self.prune_species(cur_species)
+
             if self.stagnation.update(cur_species.species_id, cur_species.avg_fitness):
-                # The species has stagnated so remove them
-                num_spawn = max(num_spawn, 2) - self.config.elites
-                
-                cur_species.orgs = cur_species.orgs[:self.config.elites]
-                if num_spawn > 0:
-                    cur_species.orgs.extend(self.spawn(self.base_org, num_spawn)) 
-                self.stagnation.reset(cur_species)
-                print("RESETING", cur_species.species_id, "num_spawn", num_spawn)
+                self._reset_species(cur_species, num_spawn)
             else:
-                # Calculate how many organsims should remain "alive"
-                num_live = int(math.ceil(max(self.config.survival_rate * len(cur_species.orgs), 2)))
-                
-                # Remove all but the top
-                cur_species.orgs = cur_species.orgs[:num_live]
-                
                 # Spawn the new organisms
+                new_orgs = []
                 for _ in range(num_spawn):
-                    parent_1 = random.choice(cur_species.orgs)
-                    if random.random() <= self.config.mutate_no_crossover:
-                        parent_2 = parent_1
-                    else:
-                        if random.random() <= self.config.reproduce_interspecies_rate:
-                            # Choose a random organism across all the species
-                            parent_2 = random.choice(random.choice(self.species_list).orgs)
-                        else:
-                            parent_2 = random.choice(cur_species.orgs)
+                    new_org, _, _ = self.breed(cur_species)
+                    new_orgs.append(new_org)
 
-                    child_net = self.breeder.reproduce(parent_1.net, parent_2.net, parent_1.avg_fitness, parent_2.avg_fitness)
-
-                    # Mutate the genotype
-                    self.mutate_child(child_net)
-                    
-
-                    cur_species.add(
-                        Organism(self.config, child_net, gen=max(parent_1.generation, parent_2.generation) + 1, id=self.cur_id))
-
-                    # Increment the current organism ID
-                    self.cur_id += 1
+                for new_org in new_orgs:
+                    cur_species.add(new_org)
+                
 
             self.orgs.extend(cur_species.orgs)     
             

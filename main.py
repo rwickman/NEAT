@@ -16,7 +16,7 @@ def main(args):
         env = MountainCar(args)
 
     for i in range(100000):
-        print(f"Generation {i}")
+        print(f"\nGeneration {i}")
         env.eval_population()
 
 
@@ -74,7 +74,8 @@ if __name__ == "__main__":
         help="Size for respeciation.")
     parser.add_argument("--max_species", type=int, default=15, 
         help="Size for respeciation.")
-    
+    parser.add_argument("--init_species", type=int, default=15, 
+        help="Number of initial species.")
 
     parser.add_argument("--init_pop_size", type=int, default=150, 
         help="Initial population size.")
@@ -99,6 +100,7 @@ if __name__ == "__main__":
         help="Directory to save NEAT models.")
     parser.add_argument("--load", action="store_true",
         help="Load existing population from save_file.")
-
+    parser.add_argument("--dir_reproduce", action="store_true",
+        help="Directional reproduce.")
     args = parser.parse_args()
     main(args)
