@@ -3,6 +3,9 @@ from neat.environment.cart_pole import CartPole
 from neat.environment.mountain_car import MountainCar
 from neat.environment.lundar_lander import LundarLander
 from neat.environment.lundar_lander_novelty import LundarLanderNovelty
+from neat.environment.lundar_lander_brain import LundarLanderBrain
+
+from neat.environment.cart_pole_brain import CartPoleBrain
 
 
 def main(args):
@@ -12,6 +15,10 @@ def main(args):
         env = LundarLander(args)
     elif args.env == "lander_novelty":
         env = LundarLanderNovelty(args)
+    elif args.env == "cartpole_brain":
+        env = CartPoleBrain(args)
+    elif args.env == "lander_brain":
+        env = LundarLanderBrain(args)
     else:
         env = MountainCar(args)
 
@@ -56,7 +63,7 @@ if __name__ == "__main__":
         help="Likelihood of randomly enabling a gene.")
     parser.add_argument("--mutate_no_crossover", type=float, default=0.1, 
         help="Likelihood of copying a parent without crossover.")
-    parser.add_argument("--mutate_add_recur_rate", type=float, default=0.05, 
+    parser.add_argument("--mutate_add_recur_rate", type=float, default=0.0, 
         help="Likelihood of adding a recurrent link.")
     parser.add_argument("--reproduce_avg_trait_rate", type=float, default=0.5, 
         help="Likelihood of averaging the parents traits.")
@@ -96,11 +103,28 @@ if __name__ == "__main__":
         help="Number of novelty neighbors used to compute novelty.")
 
 
+    parser.add_argument("--voltage_min", type=float, default=-0.01,
+        help="Minimum voltage of neuron.")
+    parser.add_argument("--voltage_rest", type=float, default=0.0,
+        help="Resting potential of neuron.")
+    parser.add_argument("--voltage_threshold", type=float, default=0.03,
+        help="Threshold needed to be reached for neuron to fire and action potential to occur.")
+    parser.add_argument("--voltage_stabilize_magnitude", type=float, default=0.005,
+        help="Random value added for stabilizing the voltage to its resting potential.")
+    parser.add_argument("--electrical_node_rate", type=float, default=0.05,
+        help="Probability of adding an electrical node.")
+    parser.add_argument("--use_refractory_period", action="store_true",
+        help="Use simulated period for neurons.")
+    
+    parser.add_argument("--use_brain", action="store_true",
+        help="Use nodes modeled after the brain.")
+
     parser.add_argument("--save_file", default="models/population.json",
         help="Directory to save NEAT models.")
     parser.add_argument("--load", action="store_true",
         help="Load existing population from save_file.")
-    parser.add_argument("--dir_reproduce", action="store_true",
-        help="Directional reproduce.")
+    
+    
+
     args = parser.parse_args()
     main(args)

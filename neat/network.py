@@ -3,12 +3,12 @@ from neat.link import Link
 from neat.util import NodeType
 
 class Network:
-    def __init__(self, out_size=3):
+    def __init__(self, out_size=3, init_depth=2):
         self.hidden_nodes: list[Node] = [] # List of hidden Nodes in the network
         self.end_nodes: list[Node] = [] # List of input/output Nodes in the network
         self.nodes: dict = {}
 
-        self.depth_to_node: list = [[] for i in range(2)] # Dictionary from depth to node
+        self.depth_to_node: list = [[] for i in range(init_depth)] # Dictionary from depth to node
         self.links: dict = {} # List of Links in the network
         self.link_dict: dict[tuple, int] = {} #map from link to number of links that have the same count
         self.out_size = out_size
@@ -150,7 +150,7 @@ class Network:
                 if node.node_type == NodeType.OUT:
                     # sanity-check to verify only getting output from output node 
                     outs[node.out_pos] = node.activation
-
+        
         return outs
 
     def reset(self):
@@ -171,6 +171,7 @@ class Network:
                 copy_net.add_node(in_node)
             else:
                 in_node = copy_net.nodes[link.in_node.gid]
+
             # Get the output node
             if link.out_node.gid not in copy_net.nodes:
                 # Create it if it doesn't exist
@@ -178,7 +179,7 @@ class Network:
                 copy_net.add_node(out_node)
             else:
                 out_node = copy_net.nodes[link.out_node.gid]
-                
+
             assert gid_tuple == (in_node.gid, out_node.gid, link.is_recur)
             # Copy the link traits with a different in_node and out_node
             copy_link = link.copy(in_node, out_node)
