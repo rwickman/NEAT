@@ -1,8 +1,8 @@
 
 
 class Species:
-    def __init__(self, config, id=0):
-        self.config = config
+    def __init__(self, args, id=0):
+        self.args = args
         self.orgs = []
         self.age = 0
         self.last_updated = 0

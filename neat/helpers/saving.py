@@ -7,6 +7,7 @@ from neat.node import Node, OutNode
 from neat.link import Link
 from neat.species import Species
 from neat.util import NodeType
+from neat.brain.brain_network import BrainNetwork
 
 def _create_link_dict(net):
     """Create dictionary for all the links in a network."""
@@ -126,6 +127,8 @@ def save_population(population: Population, save_file: str):
     # Save the population JSON
     with open(save_file, "w") as f:
         json.dump(pop_dict, f)
+    
+    return pop_dict
 
 
 
@@ -137,9 +140,12 @@ def _load_link_count_dict(link_count_list):
     
     return link_count_dict
 
-def _load_organism(config, org_dict: dict):
+def _load_organism(args, org_dict: dict, brain=False):
     net_dict = org_dict["network"]
-    net = Network(net_dict["out_size"])
+    if brain:
+        net = BrainNetwork(args, net_dict["out_size"])
+    else:
+        net = Network(net_dict["out_size"])
     # Load the nodes
     net.depth_to_node = [[] for i in range(net_dict["net_depth"])]
     for node_gid, node_dict in net_dict["nodes"].items():
@@ -169,7 +175,7 @@ def _load_organism(config, org_dict: dict):
         # Create the link
         in_node = net.nodes[in_node_gid]
         out_node = net.nodes[out_node_gid]
-        link = Link(config, in_node, out_node, is_recur)
+        link = Link(args, in_node, out_node, is_recur)
         
         # Load the link traits
         link.trait.weight = link_dict["weight"]
@@ -182,7 +188,7 @@ def _load_organism(config, org_dict: dict):
     net.link_dict = _load_link_count_dict(net_dict["link_count_list"])
 
     # Create the organism
-    org = Organism(config, net, gen=org_dict["generation"], id=org_dict["id"])
+    org = Organism(args, net, gen=org_dict["generation"], id=org_dict["id"])
     if "best_fitness" in org_dict:
         org.best_fitness = org_dict["best_fitness"]
 
@@ -201,12 +207,12 @@ def _load_inv_counter_links(inv_link_list):
     return link_dict
 
 
-def load_population(config):
+def load_population(args, brain=False):
     # Load the population dictionary
-    with open(config.save_file) as f:
+    with open(args.save_file) as f:
         pop_dict = json.load(f)
     
-    population = Population(config)
+    population = Population(args)
     
     # Load the invocation counter
     population.inv_counter.gid_counter = pop_dict["inv_dict"]["gid_counter"]
@@ -217,12 +223,12 @@ def load_population(config):
     population.generation = pop_dict["generation"]
 
     # Create the base organism
-    population.base_org = _load_organism(config, pop_dict["base_org"])
+    population.base_org = _load_organism(args, pop_dict["base_org"], brain)
 
     # Load the organisms
     org_index = {} # Used to quickly retrieve organisms
     for org_dict in pop_dict["orgs"]:
-        org = _load_organism(config, org_dict)
+        org = _load_organism(args, org_dict, brain)
         population.orgs.append(org)
         org_index[org.id] = org
 

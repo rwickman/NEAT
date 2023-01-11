@@ -9,38 +9,47 @@ from neat.util import NodeType, detect_cycle, compute_depth
 
 class Mutator:
     """Handles all mutation on a phenotype/network."""
-    def __init__(self, config, inv_counter: InvocationCounter):
-        self.config = config
+    def __init__(self, args, inv_counter: InvocationCounter):
+        self.args = args
         self.inv_counter = inv_counter
 
     def mutate_add_node(self, net):
         """Add a new node between a randomly selected link."""
 
         # Select a random non-recurrent link
-        non_recur_links = [link for link in list(net.links.values()) if not link.is_recur]
-        link_rand = random.choice(non_recur_links)
+        if self.args.max_nodes != -1:
+            if len(net.nodes) > self.args.max_nodes:
+                return
+        print("NUM NODES", len(net.nodes))
+        for i in range(10):
+            non_recur_links = [link for link in list(net.links.values()) if not link.is_recur]
+            link_rand = random.choice(non_recur_links)
 
-        # Disable the selected link
-        link_rand.enable = False
+            # Disable the selected link
+            link_rand.enable = False
 
-        # Retrive the GID
-        node_gid = self.inv_counter.get_GID(
-            link_rand.in_node.gid,
-            link_rand.out_node.gid,
-            net.get_link_count(link_rand.in_node, link_rand.out_node))
-        #print("node_gid", node_gid, link_rand.in_node.gid, link_rand.out_node.gid, net.get_link_count(link_rand.in_node, link_rand.out_node))
+            # Retrive the GID
+            node_gid = self.inv_counter.get_GID(
+                link_rand.in_node.gid,
+                link_rand.out_node.gid,
+                net.get_link_count(link_rand.in_node, link_rand.out_node))
 
-        # Create new node and optionally adjust depths of out_node
-        new_node = net.insert_node(link_rand, node_gid)
+            # Create new node and optionally adjust depths of out_node
+            new_node = net.insert_node(link_rand, node_gid)
+            if new_node is not None:
+                break
+
+        if new_node is None:
+            return
 
         # Create the links
         link_in_hidden = Link(
-            self.config,
+            self.args,
             link_rand.in_node,
             new_node)
         
         link_hidden_out = Link(
-            self.config,
+            self.args,
             new_node,
             link_rand.out_node)
 
@@ -62,8 +71,8 @@ class Mutator:
     def mutate_link_weights(self, net):
         """Randomly mutate the weights of the network."""
         for link in net.links.values():
-            if random.random() <= self.config.mutate_link_weight_rate:
-                if random.random() <= self.config.mutate_link_weight_rand_rate:
+            if random.random() <= self.args.mutate_link_weight_rate:
+                if random.random() <= self.args.mutate_link_weight_rand_rate:
                     # Random init to new value
                     link.trait.init_trait()
                 else:
@@ -83,7 +92,7 @@ class Mutator:
         max_attempts = 30
         found = False
 
-        if random.random() <= self.config.mutate_add_recur_rate:
+        if random.random() <= self.args.mutate_add_recur_rate:
             # Add a recurrent link
             created_link = self._create_recurrent_link(net)
             return created_link
@@ -131,7 +140,7 @@ class Mutator:
                 assert in_node.depth == rand_in_depth and out_node.depth == out_node.depth
                 # Create the new link
                 created_link = Link(
-                    self.config,
+                    self.args,
                     in_node,
                     out_node)
 
@@ -171,7 +180,7 @@ class Mutator:
         if found:
             # Create the new link
             created_link = Link(
-                self.config,
+                self.args,
                 in_node,
                 out_node,
                 is_recur=True)

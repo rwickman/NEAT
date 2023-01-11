@@ -7,7 +7,7 @@ from neat.util import NodeType
 
 
 class BrainNetwork(Network):
-    def __init__(self, args, out_size=3, init_depth=2):
+    def __init__(self, args, out_size=3, init_depth=3):
         super().__init__(out_size, init_depth)
         self.args = args
     
@@ -15,18 +15,25 @@ class BrainNetwork(Network):
         """When adding a node, you may need to shift the the depth of each node in path to end of network.""" 
         # if out_node.depth == in_node.depth + 1:
         #     self.insert_dim(out_node.depth) # Shift everything upward
+
+
         if random.random() <= self.args.electrical_node_rate:
             new_node = ElectricalNode(self.args, node_gid, link.in_node.depth + 1, NodeType.HIDDEN)
         else:
             new_node = ChemicalNode(self.args, node_gid, link.in_node.depth + 1, NodeType.HIDDEN)
-        self.update_depth(new_node, link)
-        # Sanity check, must not be equal as shift should have fixed this 
-        assert new_node.depth != link.in_node.depth
+        
+        if self.args.max_depth != -1 and self.check_depth(new_node, link) - 1 >= self.args.max_depth:
+            return None
+        else:
+            self.update_depth(new_node, link)
 
-        # Add the node to the network
-        self.add_node(new_node)
+            # Sanity check, must not be equal as shift should have fixed this 
+            assert new_node.depth != link.in_node.depth
 
-        return new_node
+            # Add the node to the network
+            self.add_node(new_node)
+
+            return new_node
 
     def copy(self):
         copy_net = BrainNetwork(self.args, self.out_size)

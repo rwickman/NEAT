@@ -29,13 +29,16 @@ class BrainNode(Node):
         for link in self.incoming_links:
             # Only run through enabled links 
             if link.enabled:
-                if isinstance(link.in_node, BrainNode) and link.in_node.brain_node_type == BrainNodeType.ELECTRICAL and link.in_node.activation == 1:
+                if isinstance(link.in_node, BrainNode) and link.in_node.brain_node_type == BrainNodeType.ELECTRICAL and link.in_node.activation > 0:
+                    # print("link.in_node.activation", link.in_node.activation)
                     self.active_sum = self.args.voltage_threshold
-                    break
+                    return
                 else:
+                    
                     if link.is_recur:
                         self.active_sum += link.trait.weight * link.in_node.prev_activation + link.trait.bias
                     else:
+                        # print("link.in_node.activation", link.in_node.activation)
                         # Non-recurrent link
                         self.active_sum += link.trait.weight * link.in_node.activation + link.trait.bias
 

@@ -1,22 +1,22 @@
 import gym
 from neat.population import Population
 from neat.nets.basic_nets import build_basic_brain_net
-from neat.helpers.saving import save_population, load_population
+from neat.brain.helpers.saving import save_population, load_population
 
 class CartPoleBrain:
-    def __init__(self, config, goal=3000):
+    def __init__(self, args, goal=3000):
         self.goal = goal
-        self.config = config
+        self.args = args
         self.env = gym.make('CartPole-v1')
         # Create the population
-        if self.config.load:
+        if self.args.load:
             # Load population
-            self.population = load_population(config)
+            self.population = load_population(args)
         else:
-            self.population = Population(self.config)
+            self.population = Population(self.args)
             # Create the intitial population
             self.population.setup(
-                build_basic_brain_net(self.config, 4, 1))
+                build_basic_brain_net(self.args, 4, 1))
 
     def run(self, org, render=False):
         if render:
@@ -45,8 +45,6 @@ class CartPoleBrain:
 
         
         org.net.reset()
-        for node in org.net.nodes.values():
-            node.active_sum = self.config.voltage_rest
 
         return total_reward
 
@@ -60,7 +58,7 @@ class CartPoleBrain:
                 best_org = org
 
 
-        save_population(self.population, self.config.save_file)
+        save_population(self.population, self.args.save_file)
         print("MAX FITNESS", max_fitness)
         if max_fitness > self.goal:
             print(best_org.net.nodes)

@@ -26,6 +26,7 @@ class BrainOutputNode(OutNode):
                 else:
                     cur_act = int(link.in_node.activation == 1)
 
+
                     # Non-recurrent link
                     self.active_sum += link.trait.weight * cur_act + link.trait.bias
 

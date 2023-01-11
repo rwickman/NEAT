@@ -9,21 +9,21 @@ from neat.novelty.final_state_novelty import FinalStateNovelty
 
 class LundarLanderNovelty:
     """Optimize for novelty."""
-    def __init__(self, config, stop_point=10000, goal=200, max_steps =1000):
-        self.config = config
+    def __init__(self, args, stop_point=10000, goal=200, max_steps =1000):
+        self.args = args
         self.stop_point = stop_point
         self.goal = goal
         self.max_steps = max_steps
         #self.reward_shift = reward_shift
         self.env = gym.make('LunarLander-v2')
-        self.novelty_archive = FinalStateNovelty(config)
+        self.novelty_archive = FinalStateNovelty(args)
         
-        if config.load:
-            self.population = load_population(config)
+        if args.load:
+            self.population = load_population(args)
         else:
-            self.population = Population(self.config)
+            self.population = Population(self.args)
             self.population.setup(
-                build_basic_net(self.config, 8, 4, out_activation_type=ActivationType.IDENTITY))
+                build_basic_net(self.args, 8, 4, out_activation_type=ActivationType.IDENTITY))
 
 
     def run(self, org, render=False):
@@ -84,7 +84,7 @@ class LundarLanderNovelty:
         print("MAX FITNESS", max_fitness)
 
         # Save the population
-        save_population(self.population, self.config.save_file)
+        save_population(self.population, self.args.save_file)
         if max_fitness > self.goal:
             print("SHOWING BEST")
             print("SCORE", self.run(best_org, True))

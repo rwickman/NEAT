@@ -4,24 +4,25 @@ from neat.nets.basic_nets import build_basic_net, build_basic_brain_net
 from neat.util import ActivationType
 from scipy.special import softmax
 import numpy as np
-from neat.helpers.saving import save_population, load_population
-
+from neat.brain.helpers.saving import save_population, load_population
+from neat.brain.brain_reproduction import BrainReproduction
 
 class LundarLanderBrain:
-    def __init__(self, config, stop_point=10000, goal=200, max_steps =1000):
-        self.config = config
+    def __init__(self, args, stop_point=10000, goal=200, max_steps=1000):
+        self.args = args
         self.stop_point = stop_point
         self.goal = goal
         self.max_steps = max_steps
         #self.reward_shift = reward_shift
         self.env = gym.make('LunarLander-v2')
-        if config.load:
-            self.population = load_population(config)
+        if args.load:
+            self.population = load_population(args)
         else:
-            self.population = Population(self.config)
+            self.population = Population(self.args)
             self.population.setup(
-                build_basic_brain_net(self.config, 8, 4, out_activation_type=ActivationType.IDENTITY))
+                build_basic_brain_net(self.args, 8, 4, out_activation_type=ActivationType.IDENTITY))
 
+        self.population.breeder = BrainReproduction(self.args)
 
     def run(self, org, render=False):
         if render:
@@ -34,22 +35,26 @@ class LundarLanderBrain:
         steps = 0
         while not done and not truncated:
             cur_outs = []
-            #for i in range(3):
-            out = org(state)
+            # for i in range(3):
+            #     out = org(state)
             #     cur_outs.append(out)
 
-            # out = np.array(cur_outs).mean(0)
-            
+            #out = np.array(cur_outs).mean(0)
+            out = org(state)
             action = np.random.choice(len(out), p=softmax(out))
             state, reward, done, truncated, info = self.env.step(action)
             
             total_reward += reward
             if total_reward >= self.stop_point:
                 done = True
+        
             steps += 1
+        
             if steps > self.max_steps:
                 done = True
-
+        
+        # for node in org.net.nodes.values():
+        #     node.active_sum = self.args.voltage_rest
         org.net.reset()
         return total_reward
     
@@ -66,7 +71,8 @@ class LundarLanderBrain:
         
         print("MAX FITNESS", max_fitness)
         # Save the population
-        save_population(self.population, self.config.save_file)
+        save_population(self.population, self.args.save_file)
+        print("SAVED")
         if max_fitness > self.goal:
             print(best_org.net.nodes)
             print("SHOWING BEST")

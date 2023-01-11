@@ -5,14 +5,14 @@ from neat.util import ActivationType
 from scipy.special import softmax
 
 class MountainCar:
-    def __init__(self, config, stop_point=-500, goal=-190):
-        self.config = config
+    def __init__(self, args, stop_point=-500, goal=-190):
+        self.args = args
         self.stop_point = stop_point
         self.goal = goal
         self.env = gym.make('MountainCar-v0')
-        self.population = Population(self.config)
+        self.population = Population(self.args)
         self.population.setup(
-            build_basic_net(self.config, 2, 3, out_activation_type=ActivationType.IDENTITY))
+            build_basic_net(self.args, 2, 3, out_activation_type=ActivationType.IDENTITY))
 
 
     def run(self, org, render=False):

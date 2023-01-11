@@ -5,14 +5,14 @@ from neat.node import Node, OutNode
 from neat.util import NodeType
 
 class Reproduction:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, args):
+        self.args = args
 
     def reproduce(self, net_1, net_2, fitness_1, fitness_2):
         """Reproduce using two networks."""
 
         #child_net = Network(net_1.out_size)
-        avg_traits = random.random() <= self.config.reproduce_avg_trait_rate
+        avg_traits = random.random() <= self.args.reproduce_avg_trait_rate
 
         # Copy network from better node
         if fitness_1 > fitness_2:
@@ -30,7 +30,7 @@ class Reproduction:
         
         # Randomly select genes for shared genes
         for gid_tuple, link in net_1.links.items():
-            if random.random() <= self.config.mutate_enable_gene:
+            if random.random() <= self.args.mutate_enable_gene:
                 # Enable the gene if it was disabled    
                 child_net.links[gid_tuple].enabled = True
             if gid_tuple in net_2.links:
@@ -69,7 +69,7 @@ class Reproduction:
 
         # Randomly select genes for shared genes
         for gid_tuple, link in net_1.links.items():
-            if random.random() <= self.config.mutate_enable_gene:
+            if random.random() <= self.args.mutate_enable_gene:
                 # Enable the gene if it was disabled    
                 child_net.links[gid_tuple].enabled = True
             if gid_tuple in net_2.links:

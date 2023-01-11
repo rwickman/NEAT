@@ -7,8 +7,8 @@ class SpeciesMetrics:
 
 class Stagnation:
     """Detect stagnation in a species."""
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, args):
+        self.args = args
         self.species_metrics: dict = {}
 
     def add_species(self, species):
@@ -21,7 +21,7 @@ class Stagnation:
         else:
             self.species_metrics[species_id].last_update += 1
 
-        return self.species_metrics[species_id].last_update >= self.config.max_stagnation
+        return self.species_metrics[species_id].last_update >= self.args.max_stagnation
 
     def reset(self, species):
         self.species_metrics[species.species_id] = SpeciesMetrics()

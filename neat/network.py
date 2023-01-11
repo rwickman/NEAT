@@ -3,10 +3,11 @@ from neat.link import Link
 from neat.util import NodeType
 
 class Network:
-    def __init__(self, out_size=3, init_depth=2):
+    def __init__(self, out_size=3, init_depth=2, max_depth=-1):
         self.hidden_nodes: list[Node] = [] # List of hidden Nodes in the network
         self.end_nodes: list[Node] = [] # List of input/output Nodes in the network
         self.nodes: dict = {}
+        self.max_depth = max_depth
 
         self.depth_to_node: list = [[] for i in range(init_depth)] # Dictionary from depth to node
         self.links: dict = {} # List of Links in the network
@@ -49,14 +50,17 @@ class Network:
         #     self.insert_dim(out_node.depth) # Shift everything upward
         
         new_node = Node(node_gid, link.in_node.depth + 1, NodeType.HIDDEN)
-        self.update_depth(new_node, link)
-        # Sanity check, must not be equal as shift should have fixed this 
-        assert new_node.depth != link.in_node.depth
+        if self.max_depth != -1 and self.check_depth(new_node, link) - 1 >= self.max_depth:
+            return None
+        else:
+            self.update_depth(new_node, link)
+            # Sanity check, must not be equal as shift should have fixed this 
+            assert new_node.depth != link.in_node.depth
 
-        # Add the node to the network
-        self.add_node(new_node)
+            # Add the node to the network
+            self.add_node(new_node)
 
-        return new_node
+            return new_node
 
     def move_node(self, node, new_depth):
         """Move a node to a different depth."""
@@ -127,6 +131,33 @@ class Network:
                 outgoing_links = []
             else:
                 break
+
+    def check_depth(self, node, link):
+        cur_depth = node.depth + 1
+
+        visit_links = [ link ]
+        outgoing_links = []
+        visited = set()
+        while True:
+            for cur_link in visit_links:
+                if not cur_link.is_recur:
+                    cur_node = cur_link.out_node
+                    # if cur_node.gid in visited:
+                    #     continue 
+                    visited.add(cur_node.gid)
+
+                    if cur_depth > cur_node.depth:
+                        outgoing_links += cur_node.outgoing_links
+                    
+            cur_depth += 1
+            
+            if outgoing_links:
+                visit_links = outgoing_links
+                outgoing_links = []
+            else:
+                break
+        print("cur_depth", cur_depth-1)
+        return cur_depth
 
     def activate(self, x):
         """Run x through network."""

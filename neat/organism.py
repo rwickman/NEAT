@@ -1,7 +1,7 @@
 
 class Organism:
-    def __init__(self, config, net, gen=0, id=0):
-        self.config = config
+    def __init__(self, args, net, gen=0, id=0):
+        self.args = args
         self.net = net # The network controlling the behavior of the organism
         self.generation = gen # Tells what generation this organism is from
         self.fitness = 0
@@ -13,7 +13,7 @@ class Organism:
 
     def copy(self, org_id=0):
         copy_net = self.net.copy()
-        copy_org = Organism(self.config, copy_net, self.generation, org_id)
+        copy_org = Organism(self.args, copy_net, self.generation, org_id)
         copy_org.fitness = self.fitness
         copy_org.best_fitness = self.best_fitness
         copy_org._fitness_avg = self._fitness_avg

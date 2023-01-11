@@ -2,8 +2,8 @@ import numpy as np
 
 class FinalStateNovelty:
     """Measures the novelty-based on the final state of an organism.""" 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, args):
+        self.args = args
         # List of novel final states 
         self.novel_archive = []
 
@@ -15,7 +15,7 @@ class FinalStateNovelty:
                 state_dists.append(self._dist(final_state, state))
             
             state_dists.sort()
-            neighbor_dists = state_dists[:self.config.novelty_neighbors]
+            neighbor_dists = state_dists[:self.args.novelty_neighbors]
             avg_dist = sum(neighbor_dists) / len(neighbor_dists)
             self._attempt_add_queue(final_state, avg_dist)
             avg_dists.append(avg_dist)
@@ -30,7 +30,7 @@ class FinalStateNovelty:
                 state_dists.append(self._dist(final_state, state))
             
             state_dists.sort()
-            neighbor_dists = state_dists[:self.config.novelty_neighbors]
+            neighbor_dists = state_dists[:self.args.novelty_neighbors]
             avg_dist = sum(neighbor_dists) / len(neighbor_dists)
             self._attempt_add_queue(final_state, avg_dist)
             #print("avg_dist", len(self.novel_archive), avg_dist)
@@ -38,13 +38,13 @@ class FinalStateNovelty:
         else:
             # The novel_archive has not been populated yet, so I guess just use the threshold?
             self.novel_archive.append(final_state)
-            return self.config.novelty_threshold    
+            return self.args.novelty_threshold    
     
     def _attempt_add_queue(self, final_state, avg_dist):
-        if avg_dist >= self.config.novelty_threshold:
+        if avg_dist >= self.args.novelty_threshold:
             self.novel_archive.append(final_state)
-            if len(self.novel_archive) >= self.config.novelty_queue_size:
-                self.novel_archive = self.novel_archive[:self.config.novelty_queue_size] 
+            if len(self.novel_archive) >= self.args.novelty_queue_size:
+                self.novel_archive = self.novel_archive[:self.args.novelty_queue_size] 
 
 
     def _dist(self, state_1, state_2):
